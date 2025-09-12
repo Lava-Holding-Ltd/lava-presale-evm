@@ -1,0 +1,3 @@
+Counter.setNumber
+└── when user trigger set number
+    └── it state updated

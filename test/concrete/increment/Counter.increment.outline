@@ -1,0 +1,3 @@
+Counter.increment
+    when user trigger increment
+        it state updated
