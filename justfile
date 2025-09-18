@@ -11,3 +11,4 @@ test:
 
 static-analysis:
   slither . --config-file slither.config.json
+  
