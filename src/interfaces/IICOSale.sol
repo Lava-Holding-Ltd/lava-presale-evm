@@ -22,7 +22,7 @@ interface IICOSale {
         bool active;
     }
 
-    /// @notice The structure defines the referral details for purchases
+    /// @notice The structure defines the purchase details including referral information
     /// @param codeHash The hash of the referral code
     /// @param refType The type of referral (e.g., 0 for influencer, 1 for media, etc.)
     /// @param buyer The address of the buyer making the purchase
@@ -31,7 +31,7 @@ interface IICOSale {
     /// @param roundId The ID of the sale round
     /// @param nonce The unique nonce to prevent replay attacks
     /// @param deadline The timestamp by which the referral must be used
-    struct ReferralDetails {
+    struct PurchaseDetails {
         bytes32 codeHash;
         uint8 refType;
         address buyer;
@@ -161,13 +161,10 @@ interface IICOSale {
     /// @param success The boolean indicating if the sale was successful (true) or not (false) set by the BE
     function finalizeSale(bool success) external;
 
-    /// @notice Claims a refund for the user after an unsuccessful sale, in ETH
-    /// @dev The user can claim refunds for all assets they used for payment
-    function claimRefundETH() external;
-
-    /// @notice Claims a refund for the user after an unsuccessful sale for a specific asset
-    /// @dev The user can claim a refund for a specific asset they used for payment
-    function claimRefundToken(address asset) external;
+    /// @notice Allows users to claim refunds after an unsuccessful sale
+    /// @dev Users can claim refunds for a specific asset (token) or ETH if the sale was unsuccessful
+    /// @param asset The address of the asset (token) to claim a refund for, use address(0) for ETH
+    function claimRefund(address asset) external;
 
     /// @notice Sets a new sale round with specified parameters
     /// @param startTime The start time of the sale round (timestamp)
@@ -178,23 +175,14 @@ interface IICOSale {
     function setNewRound(uint256 startTime, uint256 endTime, uint256 tokenPrice, uint256 capTotal, uint256 capPerUser)
         external;
 
-    /// @notice Purchases tokens during an active sale round using ETH
+    /// @notice Purchases tokens during an active sale round using ETH (exists ability to buy with referral)
     /// @dev The user must send ETH along with the transaction to make a purchase
-    function buyETH() external payable;
+    /// @param ref The purchase details structure containing referral information
+    /// @param sig The EIP-712 signature for the purchase details
+    function buyETH(PurchaseDetails calldata ref, bytes calldata sig) external payable;
 
-    /// @notice Purchases tokens during an active sale round using ETH with a referral
-    /// @dev The user must send ETH along with the transaction to make a purchase
-    /// @param ref The referral details structure containing referral information
-    /// @param sig The EIP-712 signature for the referral details
-    function buyETHWithReferral(ReferralDetails calldata ref, bytes calldata sig) external payable;
-
-    /// @notice Purchases tokens during an active sale round using a specified approved ERC20 token
-    /// @param asset The address of the asset (token) used for payment
-    /// @param amount The amount of the asset (token) to be used for payment
-    function buyToken(address asset, uint256 amount) external;
-
-    /// @notice Purchases tokens during an active sale round using a specified approved ERC20 token with a referral
-    /// @param ref The referral details structure containing referral information
-    /// @param sig The EIP-712 signature for the referral details
-    function buyTokenWithReferral(ReferralDetails calldata ref, bytes calldata sig) external;
+    /// @notice Purchases tokens during an active sale round using a specified approved ERC20 token (exists ability to buy with referral)
+    /// @param ref The purchase details structure containing referral information
+    /// @param sig The EIP-712 signature for the purchase details
+    function buyToken(PurchaseDetails calldata ref, bytes calldata sig) external;
 }

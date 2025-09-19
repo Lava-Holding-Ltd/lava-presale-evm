@@ -26,13 +26,13 @@ contract ICOSaleTest is Test {
         oracle = new OracleAdapter(INITIAL_ADMIN);
         tokenSale = new ICOSale(INITIAL_ADMIN, address(oracle), PLATFORM_TREASURY_WALLET, 330 * 1e6 * 1 ether);
 
-        address[] memory tokens = new address[](3);
+        address[] memory tokens = new address[](1);
         tokens[0] = Constants.WETH;
 
-        address[] memory feeds = new address[](3);
+        address[] memory feeds = new address[](1);
         feeds[0] = ETHEREUM_WETH_USD_CHAINLINK;
 
-        uint256[] memory heartbeats = new uint256[](3);
+        uint256[] memory heartbeats = new uint256[](1);
         heartbeats[0] = ETHEREUM_WETH_USD_HEARTBEAT;
 
         vm.prank(INITIAL_ADMIN);

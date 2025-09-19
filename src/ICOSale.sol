@@ -22,9 +22,11 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     using SafeERC20 for IERC20;
 
     /// @notice The enum defining the referral types used for categorizing referrals
+    /// @param NoReferral Represents no referral used
     /// @param Influencer Represents referrals made by influencers
     /// @param Media Represents referrals made by media partners
     enum RefType {
+        NoReferral,
         Influencer,
         Media
     }
@@ -167,34 +169,26 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     }
 
     /// @inheritdoc IICOSale
-    function claimRefundETH() external nonReentrant {
+    function claimRefund(address asset) external nonReentrant {
         require(saleFinalized, Errors.SaleNotFinished());
         require(!saleSuccessful, Errors.SaleSuccessful());
 
-        uint256 amt = refundable[_msgSender()][Constants.WETH];
+        bool isEth = (asset == address(0) || asset == Constants.WETH);
+        address key = isEth ? Constants.WETH : asset;
+
+        uint256 amt = refundable[_msgSender()][key];
         require(amt != 0, Errors.NoRefund());
-        require(address(this).balance >= amt, Errors.InsufficientBalance());
 
-        refundable[_msgSender()][Constants.WETH] = 0;
+        refundable[_msgSender()][key] = 0;
 
-        Address.sendValue(payable(_msgSender()), amt);
-        emit RefundClaimed(_msgSender(), Constants.WETH, amt);
-    }
-
-    /// @inheritdoc IICOSale
-    function claimRefundToken(address asset) external nonReentrant {
-        require(saleFinalized, Errors.SaleNotFinished());
-        require(!saleSuccessful, Errors.SaleSuccessful());
-        require(asset != address(0), Errors.ZeroAddress());
-
-        uint256 amt = refundable[_msgSender()][asset];
-        require(amt != 0, Errors.NoRefund());
-        require(IERC20(asset).balanceOf(address(this)) >= amt, Errors.InsufficientBalance());
-
-        refundable[_msgSender()][asset] = 0;
-
-        IERC20(asset).safeTransfer(_msgSender(), amt);
-        emit RefundClaimed(_msgSender(), asset, amt);
+        if (isEth) {
+            require(address(this).balance >= amt, Errors.InsufficientBalance());
+            Address.sendValue(payable(_msgSender()), amt);
+        } else {
+            require(IERC20(asset).balanceOf(address(this)) >= amt, Errors.InsufficientBalance());
+            IERC20(asset).safeTransfer(_msgSender(), amt);
+        }
+        emit RefundClaimed(_msgSender(), key, amt);
     }
 
     /// @inheritdoc IICOSale
@@ -228,21 +222,17 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     }
 
     /// @inheritdoc IICOSale
-    function buyETH() external payable nonReentrant {
-        require(!saleFinalized, Errors.SaleAlreadyFinalized());
-        require(msg.value != 0, Errors.ZeroAmount());
-
-        Address.sendValue(payable(TREASURY_WALLET), msg.value);
-        refundable[_msgSender()][Constants.WETH] += msg.value;
-
-        _buyChecksAndEffects(Constants.WETH, msg.value, _msgSender(), bytes32(0), 0);
-    }
-
-    /// @inheritdoc IICOSale
-    function buyETHWithReferral(ReferralDetails calldata _ref, bytes calldata _sig) external payable nonReentrant {
+    function buyETH(PurchaseDetails calldata _ref, bytes calldata _sig) external payable nonReentrant {
         require(!saleFinalized, Errors.SaleAlreadyFinalized());
         require(msg.value != 0 && msg.value == _ref.amount, Errors.ZeroAmount());
         require(_ref.asset == Constants.WETH, Errors.NotAcceptedAsset());
+
+        if(_ref.refType != uint8(RefType.NoReferral)) 
+            require(
+                _ref.codeHash != bytes32(0)
+                    && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
+                Errors.InvalidReferralType()
+            );
 
         _verifyReferralSignature(_ref, _sig);
 
@@ -253,22 +243,17 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     }
 
     /// @inheritdoc IICOSale
-    function buyToken(address _asset, uint256 _amount) external nonReentrant {
-        require(!saleFinalized, Errors.SaleAlreadyFinalized());
-        require(_amount != 0, Errors.ZeroAmount());
-        require(_asset != address(0) && isApprovedAsset[_asset], Errors.NotAcceptedAsset());
-
-        IERC20(_asset).safeTransferFrom(_msgSender(), TREASURY_WALLET, _amount);
-        refundable[_msgSender()][_asset] += _amount;
-
-        _buyChecksAndEffects(_asset, _amount, _msgSender(), bytes32(0), 0);
-    }
-
-    /// @inheritdoc IICOSale
-    function buyTokenWithReferral(ReferralDetails calldata _ref, bytes calldata _sig) external nonReentrant {
+    function buyToken(PurchaseDetails calldata _ref, bytes calldata _sig) external nonReentrant {
         require(!saleFinalized, Errors.SaleAlreadyFinalized());
         require(_ref.amount != 0, Errors.ZeroAmount());
         require(_ref.asset != address(0) && isApprovedAsset[_ref.asset], Errors.NotAcceptedAsset());
+
+        if(_ref.refType != uint8(RefType.NoReferral)) 
+            require(
+                _ref.codeHash != bytes32(0)
+                    && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
+                Errors.InvalidReferralType()
+            );
 
         _verifyReferralSignature(_ref, _sig);
 
@@ -334,18 +319,13 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     /// @dev Internal function to verify the referral signature and update the nonce
     /// @param _ref The referral details structure
     /// @param _signature The EIP-712 signature to verify
-    function _verifyReferralSignature(ReferralDetails calldata _ref, bytes calldata _signature) internal {
+    function _verifyReferralSignature(PurchaseDetails calldata _ref, bytes calldata _signature) internal {
         require(_ref.amount != 0, Errors.ZeroAmount());
         require(_ref.buyer == _msgSender(), Errors.NotBuyer());
         require(_ref.asset != address(0), Errors.ZeroAddress());
         require(_ref.roundId == currentRoundId, Errors.InactiveRound());
         require(_ref.nonce == nonces(_ref.buyer), Errors.NonceMismatch());
         require(_ref.deadline >= block.timestamp, Errors.ExpiredSignature());
-        require(
-            _ref.codeHash != bytes32(0)
-                && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
-            Errors.InvalidReferralType()
-        );
 
         bytes32 digest = _hashTypedDataV4(
             keccak256(

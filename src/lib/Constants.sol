@@ -18,9 +18,9 @@ library Constants {
     /// @dev The divisor (10_000 - 100%) to calculate the percentage
     uint16 internal constant BASIS_FEE_DIVISOR = 10_000;
 
-    /// @dev The typehash for the ReferralDetails structure used in EIP-712 signatures
+    /// @dev The typehash for the PurchaseDetails structure used in EIP-712 signatures
     bytes32 internal constant _REFERRAL_TYPEHASH = keccak256(
-        "ReferralDetails(bytes32 codeHash,uint8 refType,address buyer,address asset,uint256 amount,uint256 roundId,uint256 nonce,uint256 deadline)"
+        "PurchaseDetails(bytes32 codeHash,uint8 refType,address buyer,address asset,uint256 amount,uint256 roundId,uint256 nonce,uint256 deadline)"
     );
 
     /// @dev The address of the USDC token on Ethereum mainnet

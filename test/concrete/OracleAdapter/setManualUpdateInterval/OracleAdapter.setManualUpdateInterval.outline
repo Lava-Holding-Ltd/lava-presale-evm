@@ -1,0 +1,21 @@
+OracleAdapter.setManualUpdateInterval
+
+when called by the owner with a non-zero interval
+    it updates the manualUpdateInterval storage value
+        expect manualUpdateInterval to equal the new interval
+    it emits ManualUpdateIntervalSet event
+        expect the event with (interval, caller)
+    it overwrites a previous non-zero value
+        pre-set manualUpdateInterval to a different value; call again; expect manualUpdateInterval to equal the new interval
+
+when called by a non-owner
+    it reverts
+        expect revert with OwnableUnauthorizedAccount including the caller
+    it does not change state
+        pre-set manualUpdateInterval; attempt call from non-owner; expect value unchanged
+
+when the interval is zero
+    it reverts
+        expect revert with ZeroAmount error
+    it does not change state
+        pre-set manualUpdateInterval; call with 0; expect value unchanged
