@@ -63,7 +63,7 @@ contract OracleAdapterGetPriceInUSDTest is ICOSaleTest {
         address feedAddr = oracle.priceFeeds(Constants.WETH);
         uint256 hb = oracle.heartbeats(Constants.WETH);
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddr);
-        (, , , uint256 updatedAt, ) = feed.latestRoundData();
+        (,,, uint256 updatedAt,) = feed.latestRoundData();
 
         vm.warp(updatedAt + hb + 1);
 

@@ -48,7 +48,7 @@ interface IICOSale {
     /// @param treasury The address where funds will be sent
     /// @param maxTotalAllocationTokens The maximum number of tokens available for sale
     event SaleInitialized(
-        address indexed owner, address oracle, address indexed treasury, uint256 maxTotalAllocationTokens
+        address indexed owner, address indexed oracle, address indexed treasury, uint256 maxTotalAllocationTokens
     );
 
     /// @dev The event is triggered whenever alien funds (leftovers) are rescued from the SC
@@ -106,7 +106,7 @@ interface IICOSale {
     /// @param usdAmount The USD equivalent amount of the asset used for payment, normalized to 18 decimals
     /// @param tokenAmount The amount of tokens purchased (excluding bonus)
     /// @param bonusAmount The amount of bonus tokens awarded to the user
-    /// @param aggragateTokenAmount The total amount of tokens the user has purchased in the current round (including bonus)
+    /// @param aggregateTokenAmount The total amount of tokens the user has purchased in the current round (including bonus)
     event Purchased(
         address indexed user,
         address indexed asset,
@@ -115,7 +115,7 @@ interface IICOSale {
         uint256 usdAmount,
         uint256 tokenAmount,
         uint256 bonusAmount,
-        uint256 aggragateTokenAmount
+        uint256 aggregateTokenAmount
     );
 
     /// @dev The event is triggered whenever a referral is applied during a purchase

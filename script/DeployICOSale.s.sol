@@ -18,4 +18,3 @@ contract DeployICOSaleScript is Script {
         vm.stopBroadcast();
     }
 }
-

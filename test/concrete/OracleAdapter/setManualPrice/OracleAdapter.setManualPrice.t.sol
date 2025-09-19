@@ -11,7 +11,7 @@ import { ICOSaleTest } from "test/ICOSaleTest.sol";
 
 contract OracleAdapterSetManualPriceTest is ICOSaleTest {
     address internal token = makeAddr("token");
-    
+
     function setUp() public {
         fixture();
     }

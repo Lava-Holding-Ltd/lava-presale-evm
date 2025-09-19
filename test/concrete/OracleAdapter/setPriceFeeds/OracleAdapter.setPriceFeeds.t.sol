@@ -24,13 +24,13 @@ contract OracleAdapterSetPriceFeedsTest is ICOSaleTest {
         address[] memory feeds = new address[](2);
         uint256[] memory heartbeats = new uint256[](2);
 
-        tokens[0] = tokenA; 
+        tokens[0] = tokenA;
         tokens[1] = tokenB;
-        
+
         feeds[0] = feedA;
         feeds[1] = feedB;
-        
-        heartbeats[0] = 1 hours; 
+
+        heartbeats[0] = 1 hours;
         heartbeats[1] = 2 hours;
 
         vm.prank(INITIAL_ADMIN);
@@ -81,11 +81,11 @@ contract OracleAdapterSetPriceFeedsTest is ICOSaleTest {
         address[] memory feeds = new address[](1);
         uint256[] memory heartbeats = new uint256[](2);
 
-        tokens[0] = tokenA; 
+        tokens[0] = tokenA;
         tokens[1] = tokenB;
-        
+
         feeds[0] = feedA;
-        
+
         heartbeats[0] = 1 hours;
         heartbeats[1] = 2 hours;
 

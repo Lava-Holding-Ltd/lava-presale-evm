@@ -227,12 +227,13 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
         require(msg.value != 0 && msg.value == _ref.amount, Errors.ZeroAmount());
         require(_ref.asset == Constants.WETH, Errors.NotAcceptedAsset());
 
-        if(_ref.refType != uint8(RefType.NoReferral)) 
+        if (_ref.refType != uint8(RefType.NoReferral)) {
             require(
                 _ref.codeHash != bytes32(0)
                     && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
                 Errors.InvalidReferralType()
             );
+        }
 
         _verifyReferralSignature(_ref, _sig);
 
@@ -248,12 +249,13 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
         require(_ref.amount != 0, Errors.ZeroAmount());
         require(_ref.asset != address(0) && isApprovedAsset[_ref.asset], Errors.NotAcceptedAsset());
 
-        if(_ref.refType != uint8(RefType.NoReferral)) 
+        if (_ref.refType != uint8(RefType.NoReferral)) {
             require(
                 _ref.codeHash != bytes32(0)
                     && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
                 Errors.InvalidReferralType()
             );
+        }
 
         _verifyReferralSignature(_ref, _sig);
 
