@@ -37,6 +37,19 @@ jobs:
           forge soldeer install
         id: setup
 
+      - name: Sanity check dependencies layout
+        run: |
+          set -e
+          ls -la dependencies || true
+          test -f dependencies/forge-std-1.10.0/src/Script.sol
+          test -f dependencies/@openzeppelin-contracts-5.4.0/contracts/access/Ownable.sol
+          # If your Chainlink bundle is contracts/src/..., keep the first path;
+          # if it's src/... at root, switch your remap accordingly and test that path instead.
+          test -f dependencies/@chainlink-contracts-0.8.0/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol
+
+      - name: Show resolved remappings (debug)
+        run: forge config --json | jq '.remappings'
+
       - name: Run Forge build
         run: |
           forge build --sizes
