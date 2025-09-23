@@ -3,7 +3,7 @@ pragma solidity 0.8.29;
 
 import { Errors } from "src/lib/Errors.sol";
 import { Constants } from "src/lib/Constants.sol";
-import { AggregatorV3Interface } from "@chainlink-contracts-0.8.0/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import { AggregatorV3Interface } from "@chainlink-contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import { INITIAL_ADMIN } from "script/lib/DataStore.sol";
 
