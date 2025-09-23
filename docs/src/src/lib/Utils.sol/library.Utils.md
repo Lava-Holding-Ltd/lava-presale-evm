@@ -1,5 +1,5 @@
 # Utils
-[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/bad4141a2aa5e099145889e50ed8ebad2fa94115/src/lib/Utils.sol)
+[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/94fdb9bebf4beec3b3456b7886da7de39447ccbb/src/lib/Utils.sol)
 
 The Utils library provides utility functions for normalizing amounts to different decimal places
 

@@ -1,0 +1,8 @@
+ICOSale.finalizeSale
+├── when called by the owner and saleFinalized is false
+│   ├── it sets saleFinalized = true
+│   └── it emits SaleFinalized with the correct parameters
+├── when called by the owner and saleFinalized is already true
+│   └── it reverts with SaleAlreadyFinalized
+└── when called by a non-owner
+    └── it reverts with OwnableUnauthorizedAccount

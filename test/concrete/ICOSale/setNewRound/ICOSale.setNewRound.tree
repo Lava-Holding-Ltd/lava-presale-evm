@@ -1,0 +1,15 @@
+ICOSale.setNewRound
+├── when called by the owner with valid times, non-zero price & cap, and no prior round
+│   └── it creates round with id 0, sets fields, marks active, soldTokens = 0, and emits NewRoundSet with correct args
+├── when called by the owner with valid params and a prior active round
+│   ├── it deactivates the previous round (sets active = false)
+│   ├── it increments round id (newId = currentRoundId + 1)
+│   └── it creates the new round with correct fields and emits NewRoundSet
+├── when newId >= Constants.MAX_ROUNDS
+│   └── it reverts with CapReached
+├── when timeframe is invalid (_startTime == 0 or _endTime == 0 or _startTime >= _endTime)
+│   └── it reverts with InvalidTimeframe
+├── when _tokenPrice == 0 or _capTotal == 0
+│   └── it reverts with ZeroAmount
+└── when called by a non-owner
+    └── it reverts with OwnableUnauthorizedAccount

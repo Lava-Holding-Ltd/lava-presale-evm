@@ -1,5 +1,5 @@
 # ICOSale
-[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/bad4141a2aa5e099145889e50ed8ebad2fa94115/src/ICOSale.sol)
+[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/94fdb9bebf4beec3b3456b7886da7de39447ccbb/src/ICOSale.sol)
 
 **Inherits:**
 [IICOSale](/src/interfaces/IICOSale.sol/interface.IICOSale.md), EIP712, Ownable, ReentrancyGuard, Nonces
@@ -86,17 +86,6 @@ bool public saleFinalized;
 ```
 
 
-### saleSuccessful
-The boolean indicating if the sale was successful (i.e., soft cap reached)
-
-*This is set to true only if the soft cap is reached upon finalization*
-
-
-```solidity
-bool public saleSuccessful;
-```
-
-
 ### rounds
 The mapping keeps details of each sale round
 
@@ -175,22 +164,22 @@ mapping(uint8 => uint16) public referralBonusBpsByType;
 ### refTotalUsd
 The mapping tracks total USD raised per referral code (normalized to 18 decimals)
 
-*The key is the hash of the referral code*
+*The key is the string of the referral code*
 
 
 ```solidity
-mapping(bytes32 => uint256) public refTotalUsd;
+mapping(string => uint256) public refTotalUsd;
 ```
 
 
 ### refTotalBonusTokens
 The mapping tracks total bonus tokens awarded per referral code
 
-*The key is the hash of the referral code*
+*The key is the string of the referral code*
 
 
 ```solidity
-mapping(bytes32 => uint256) public refTotalBonusTokens;
+mapping(string => uint256) public refTotalBonusTokens;
 ```
 
 
@@ -291,37 +280,12 @@ function setReferralTypeBps(uint8 _refType, uint16 _refPercentage) external only
 
 ### finalizeSale
 
-Finalizes the entire sale after all rounds have ended
-
-*Only the owner can call this function. It determines if the sale was successful (i.e., soft cap reached)*
+Finalizes the entire sale after all rounds have ended. Only the owner can call this function
 
 
 ```solidity
-function finalizeSale(bool _success) external onlyOwner;
+function finalizeSale() external onlyOwner;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_success`|`bool`||
-
-
-### claimRefund
-
-Allows users to claim refunds after an unsuccessful sale
-
-*Users can claim refunds for a specific asset (token) or ETH if the sale was unsuccessful*
-
-
-```solidity
-function claimRefund(address asset) external nonReentrant;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`asset`|`address`|The address of the asset (token) to claim a refund for, use address(0) for ETH|
-
 
 ### setNewRound
 
@@ -329,9 +293,7 @@ Sets a new sale round with specified parameters
 
 
 ```solidity
-function setNewRound(uint256 _startTime, uint256 _endTime, uint256 _tokenPrice, uint256 _capTotal, uint256 _capPerUser)
-    external
-    onlyOwner;
+function setNewRound(uint256 _startTime, uint256 _endTime, uint256 _tokenPrice, uint256 _capTotal) external onlyOwner;
 ```
 **Parameters**
 
@@ -341,7 +303,6 @@ function setNewRound(uint256 _startTime, uint256 _endTime, uint256 _tokenPrice, 
 |`_endTime`|`uint256`||
 |`_tokenPrice`|`uint256`||
 |`_capTotal`|`uint256`||
-|`_capPerUser`|`uint256`||
 
 
 ### buyETH
@@ -384,8 +345,13 @@ function buyToken(PurchaseDetails calldata _ref, bytes calldata _sig) external n
 
 
 ```solidity
-function _buyChecksAndEffects(address _payAsset, uint256 _payAmount, address _buyer, bytes32 _codeHash, uint8 _refType)
-    internal;
+function _buyChecksAndEffects(
+    address _payAsset,
+    uint256 _payAmount,
+    address _buyer,
+    string calldata _refCode,
+    uint8 _refType
+) internal;
 ```
 **Parameters**
 
@@ -394,7 +360,7 @@ function _buyChecksAndEffects(address _payAsset, uint256 _payAmount, address _bu
 |`_payAsset`|`address`|The address of the asset used for payment|
 |`_payAmount`|`uint256`|The amount of the asset used for payment|
 |`_buyer`|`address`|The address of the buyer|
-|`_codeHash`|`bytes32`|The hash of the referral code (if any)|
+|`_refCode`|`string`|The referral code used (if any)|
 |`_refType`|`uint8`|The type of referral (if any)|
 
 

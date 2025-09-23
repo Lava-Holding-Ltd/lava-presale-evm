@@ -1,5 +1,5 @@
 # OracleAdapter
-[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/bad4141a2aa5e099145889e50ed8ebad2fa94115/src/OracleAdapter.sol)
+[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/94fdb9bebf4beec3b3456b7886da7de39447ccbb/src/OracleAdapter.sol)
 
 **Inherits:**
 [IOracleAdapter](/src/interfaces/IOracleAdapter.sol/interface.IOracleAdapter.md), Ownable

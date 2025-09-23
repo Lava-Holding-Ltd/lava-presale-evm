@@ -1,0 +1,15 @@
+ICOSale.rescueFunds
+├── when the caller is not the owner
+│   └── it reverts with OwnableUnauthorizedAccount error
+├── when the amount is zero
+│   └── it reverts with ZeroAmount error
+├── when rescuing ETH
+│   ├── when the amount exceeds contract balance
+│   │   └── it reverts with InsufficientBalance error
+│   └── when the amount is valid
+│       ├── it transfers ETH to treasury wallet
+│       └── it emits FundsRescued event with correct parameters
+└── when rescuing an ERC20 token
+    └── when the amount and token are valid
+        ├── it transfers tokens to treasury wallet
+        └── it emits FundsRescued event with correct parameters

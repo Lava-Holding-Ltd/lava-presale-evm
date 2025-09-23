@@ -1,0 +1,10 @@
+ICOSale.setApprovedAsset
+├── when called by the owner with a non-zero asset and flipping from false → true or vice versa
+│   ├── it sets isApprovedAsset[_asset] = indicator
+│   └── it emits PayAssetApprovalSet with correct parameters
+├── when _asset is the zero address
+│   └── it reverts with ZeroAddress and does not change state
+├── when the indicator is already set to the requested value
+│   └── it reverts with IndicatorAlreadySet and does not change state
+└── when called by a non-owner
+    └── it reverts with OwnableUnauthorizedAccount and does not change state

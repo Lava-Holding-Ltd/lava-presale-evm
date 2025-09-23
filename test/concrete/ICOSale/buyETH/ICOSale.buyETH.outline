@@ -1,0 +1,82 @@
+ICOSale.buyETH
+
+when sale is not finalized and all provided params are valid and round checks pass
+    it forwards ETH to TREASURY_WALLET
+        expect TREASURY_WALLET balance to increase by msg.value
+    it increases refundable[buyer][WETH] by msg.value
+        expect refundable[buyer][Constants.WETH] to increase by msg.value
+    it updates totals and allocations
+        expect totalUsdRaised and walletUsdRaised[buyer] to increase by usdValue
+        expect rounds[currentRoundId].soldTokens to increase by toBuyer
+        expect roundBuyerAllocation[currentRoundId][buyer], totalBuyerAllocation[buyer], totalAllocatedTokens to increase by toBuyer
+        if refCode != "" expect refTotalUsd[refCode] += usdValue and refTotalBonusTokens[refCode] += refBonus
+    it emits Purchased event with correct arguments
+        expect event (currentRoundId, buyer, refCode, refType, Constants.WETH, normalizedAmount, usdValue, base, refBonus, toBuyer)
+
+when sale is finalized
+    it reverts
+        expect revert with Errors.SaleAlreadyFinalized
+
+when msg.value is zero or msg.value != _ref.amount
+    it reverts
+        expect revert with Errors.ZeroAmount
+
+when _ref.asset is not WETH or address(0)
+    it reverts
+        expect revert with Errors.NotAcceptedAsset
+
+when _ref.refType is not NoReferral and refCode is empty
+    it reverts
+        expect revert with Errors.InvalidReferralType
+
+when _ref.refType is not one of Influencer or Media and not NoReferral
+    it reverts
+        expect revert with Errors.InvalidReferralType
+
+when _ref.buyer != msg.sender (signature payload)
+    it reverts
+        expect revert with Errors.NotBuyer
+
+when _ref.roundId != currentRoundId (signature payload)
+    it reverts
+        expect revert with Errors.InactiveRound
+
+when _ref.nonce != nonces(_ref.buyer) (signature payload)
+    it reverts
+        expect revert with Errors.NonceMismatch
+
+when _ref.deadline < block.timestamp (signature payload)
+    it reverts
+        expect revert with Errors.ExpiredSignature
+
+when recovered signer != owner (signature payload)
+    it reverts
+        expect revert with Errors.InvalidSignature
+
+when the current round is inactive
+    it reverts
+        expect revert with Errors.InactiveRound
+
+when block.timestamp is outside [startTime, endTime]
+    it reverts
+        expect revert with Errors.InvalidTimeframe
+
+when usdValue < minUsdPerTx
+    it reverts
+        expect revert with Errors.UnderMin
+
+when totalUsdRaised + usdValue > HARD_CAP_USD
+    it reverts
+        expect revert with Errors.HardCapExceeded
+
+when walletUsdRaised[buyer] + usdValue > MAX_USD_PER_WALLET
+    it reverts
+        expect revert with Errors.WalletCapExceeded
+
+when toBuyer > (round.capTotal - round.soldTokens)
+    it reverts
+        expect revert with Errors.CapReached
+
+when toBuyer > (MAX_TOTAL_ALLOCATION_TOKENS - totalAllocatedTokens)
+    it reverts
+        expect revert with Errors.CapReached

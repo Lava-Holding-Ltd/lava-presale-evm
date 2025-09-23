@@ -1,5 +1,5 @@
 # IICOSale
-[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/bad4141a2aa5e099145889e50ed8ebad2fa94115/src/interfaces/IICOSale.sol)
+[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/94fdb9bebf4beec3b3456b7886da7de39447ccbb/src/interfaces/IICOSale.sol)
 
 This interface defines the structures, events and function's prototypes for the ICOSale contract
 
@@ -72,37 +72,12 @@ function setReferralTypeBps(uint8 refType, uint16 refPercentage) external;
 
 ### finalizeSale
 
-Finalizes the entire sale after all rounds have ended
-
-*Only the owner can call this function. It determines if the sale was successful (i.e., soft cap reached)*
+Finalizes the entire sale after all rounds have ended. Only the owner can call this function
 
 
 ```solidity
-function finalizeSale(bool success) external;
+function finalizeSale() external;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`success`|`bool`|The boolean indicating if the sale was successful (true) or not (false) set by the BE|
-
-
-### claimRefund
-
-Allows users to claim refunds after an unsuccessful sale
-
-*Users can claim refunds for a specific asset (token) or ETH if the sale was unsuccessful*
-
-
-```solidity
-function claimRefund(address asset) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`asset`|`address`|The address of the asset (token) to claim a refund for, use address(0) for ETH|
-
 
 ### setNewRound
 
@@ -110,8 +85,7 @@ Sets a new sale round with specified parameters
 
 
 ```solidity
-function setNewRound(uint256 startTime, uint256 endTime, uint256 tokenPrice, uint256 capTotal, uint256 capPerUser)
-    external;
+function setNewRound(uint256 startTime, uint256 endTime, uint256 tokenPrice, uint256 capTotal) external;
 ```
 **Parameters**
 
@@ -121,7 +95,6 @@ function setNewRound(uint256 startTime, uint256 endTime, uint256 tokenPrice, uin
 |`endTime`|`uint256`|The end time of the sale round (timestamp)|
 |`tokenPrice`|`uint256`|The price of the token in USD, normalized to 18 decimals|
 |`capTotal`|`uint256`|The total cap of tokens available for sale in this round|
-|`capPerUser`|`uint256`|The maximum number of tokens a single user can purchase in this round|
 
 
 ### buyETH
@@ -165,7 +138,7 @@ function buyToken(PurchaseDetails calldata ref, bytes calldata sig) external;
 
 ```solidity
 event SaleInitialized(
-    address indexed owner, address oracle, address indexed treasury, uint256 maxTotalAllocationTokens
+    address indexed owner, address indexed oracle, address indexed treasury, uint256 maxTotalAllocationTokens
 );
 ```
 
@@ -247,41 +220,22 @@ event ReferralTypePercentageUpdated(uint8 refType, uint256 percentage, address i
 
 
 ```solidity
-event SaleFinalized(bool successful, uint256 totalRaised, address indexed admin);
+event SaleFinalized(uint256 totalRaised, address indexed admin);
 ```
 
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`successful`|`bool`|The boolean indicating if the sale was successful (i.e., soft cap reached)|
 |`totalRaised`|`uint256`|The total USD amount raised across all rounds (normalized to 18 decimals)|
 |`admin`|`address`|The address of the admin who performed the finalization|
-
-### RefundClaimed
-*The event is triggered whenever a user makes the refund claim after the unsuccessful sale*
-
-
-```solidity
-event RefundClaimed(address indexed user, address indexed token, uint256 amount);
-```
-
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The address of the user claiming the refund|
-|`token`|`address`|The address of the token being refunded, use address(0) for ETH|
-|`amount`|`uint256`|The amount of tokens refunded to the user|
 
 ### NewRoundSet
 *The event is triggered whenever a new sale round is set*
 
 
 ```solidity
-event NewRoundSet(
-    uint256 roundId, uint256 startTime, uint256 endTime, uint256 tokenPrice, uint256 capTotal, uint256 capPerUser
-);
+event NewRoundSet(uint256 roundId, uint256 startTime, uint256 endTime, uint256 tokenPrice, uint256 capTotal);
 ```
 
 **Parameters**
@@ -293,51 +247,23 @@ event NewRoundSet(
 |`endTime`|`uint256`|The end time of the sale round (timestamp)|
 |`tokenPrice`|`uint256`|The price of the token in USD, normalized to 18 decimals|
 |`capTotal`|`uint256`|The total cap of tokens available for sale in this round|
-|`capPerUser`|`uint256`|The maximum number of tokens a single user can purchase in this round|
 
 ### Purchased
-*The event is triggered whenever a user makes a purchase during an active sale round*
+*The event is triggered whenever a purchase is made during an active sale round*
 
 
 ```solidity
 event Purchased(
-    address indexed user,
-    address indexed asset,
     uint256 roundId,
-    uint256 assetAmount,
-    uint256 usdAmount,
-    uint256 tokenAmount,
-    uint256 bonusAmount,
-    uint256 aggragateTokenAmount
-);
-```
-
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The address of the user making the purchase|
-|`asset`|`address`|The address of the asset (token) used for payment|
-|`roundId`|`uint256`|The ID of the sale round during which the purchase was made|
-|`assetAmount`|`uint256`|The amount of the asset used for payment|
-|`usdAmount`|`uint256`|The USD equivalent amount of the asset used for payment, normalized to 18 decimals|
-|`tokenAmount`|`uint256`|The amount of tokens purchased (excluding bonus)|
-|`bonusAmount`|`uint256`|The amount of bonus tokens awarded to the user|
-|`aggragateTokenAmount`|`uint256`|The total amount of tokens the user has purchased in the current round (including bonus)|
-
-### ReferralApplied
-*The event is triggered whenever a referral is applied during a purchase*
-
-
-```solidity
-event ReferralApplied(
     address indexed buyer,
-    bytes32 codeHash,
+    string refCode,
     uint8 refType,
-    uint256 roundId,
+    address indexed asset,
+    uint256 amount,
     uint256 usdValue,
-    uint256 baseTokenAmount,
-    uint256 bonusTokenAmount
+    uint256 tokensBought,
+    uint256 refBonusTokens,
+    uint256 totalTokens
 );
 ```
 
@@ -345,13 +271,16 @@ event ReferralApplied(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`buyer`|`address`|The address of the buyer making the purchase|
-|`codeHash`|`bytes32`|The hash of the referral code|
-|`refType`|`uint8`|The type of referral (e.g., 0 for influencer, 1 for media, etc.)|
 |`roundId`|`uint256`|The ID of the sale round during which the purchase was made|
-|`usdValue`|`uint256`|The USD equivalent amount of the asset used for payment, normalized to 18 decimals|
-|`baseTokenAmount`|`uint256`|The amount of tokens purchased (excluding bonus)|
-|`bonusTokenAmount`|`uint256`|The amount of bonus tokens awarded to the buyer|
+|`buyer`|`address`|The address of the buyer who made the purchase|
+|`refCode`|`string`|The referral code used for the purchase (if any)|
+|`refType`|`uint8`|The type of referral used (e.g., 0 for no referral, 1 for influencer, etc.)|
+|`asset`|`address`|The address of the asset (token) used for payment|
+|`amount`|`uint256`|The amount of the asset used for payment|
+|`usdValue`|`uint256`|The USD value of the purchase (normalized to 18 decimals)|
+|`tokensBought`|`uint256`|The number of tokens bought in the purchase|
+|`refBonusTokens`|`uint256`|The number of bonus tokens awarded due to referral (if any)|
+|`totalTokens`|`uint256`|The total number of tokens allocated to the buyer (including bonus tokens)|
 
 ## Structs
 ### Round
@@ -365,7 +294,6 @@ struct Round {
     uint256 tokenPrice;
     uint256 capTotal;
     uint256 soldTokens;
-    uint256 capPerUser;
     bool active;
 }
 ```
@@ -379,7 +307,6 @@ struct Round {
 |`tokenPrice`|`uint256`|The price of the token in USD, normalized to 18 decimals|
 |`capTotal`|`uint256`|The total cap of tokens available for sale in this round|
 |`soldTokens`|`uint256`|The number of tokens sold in this round|
-|`capPerUser`|`uint256`|The maximum number of tokens a single user can purchase in this round|
 |`active`|`bool`|The boolean indicating if the round is active|
 
 ### PurchaseDetails
@@ -388,7 +315,7 @@ The structure defines the purchase details including referral information
 
 ```solidity
 struct PurchaseDetails {
-    bytes32 codeHash;
+    string refCode;
     uint8 refType;
     address buyer;
     address asset;
@@ -403,7 +330,7 @@ struct PurchaseDetails {
 
 |Name|Type|Description|
 |----|----|-----------|
-|`codeHash`|`bytes32`|The hash of the referral code|
+|`refCode`|`string`|The referral code used for the purchase (if any)|
 |`refType`|`uint8`|The type of referral (e.g., 0 for influencer, 1 for media, etc.)|
 |`buyer`|`address`|The address of the buyer making the purchase|
 |`asset`|`address`|The address of the asset (token) used for payment|

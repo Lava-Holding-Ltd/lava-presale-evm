@@ -1,5 +1,5 @@
 # IOracleAdapter
-[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/bad4141a2aa5e099145889e50ed8ebad2fa94115/src/interfaces/IOracleAdapter.sol)
+[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/94fdb9bebf4beec3b3456b7886da7de39447ccbb/src/interfaces/IOracleAdapter.sol)
 
 The interface for the OracleAdapter contract that manages price feeds for tokens
 

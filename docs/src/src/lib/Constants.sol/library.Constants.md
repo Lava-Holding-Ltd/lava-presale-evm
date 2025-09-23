@@ -1,5 +1,5 @@
 # Constants
-[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/bad4141a2aa5e099145889e50ed8ebad2fa94115/src/lib/Constants.sol)
+[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/94fdb9bebf4beec3b3456b7886da7de39447ccbb/src/lib/Constants.sol)
 
 This library contains constants for the core SCs
 
@@ -37,7 +37,7 @@ The constant defining the maximum USD amount per wallet (normalized to 18 decima
 
 
 ```solidity
-uint256 public constant MAX_USD_PER_WALLET = 40_000 * 1 ether;
+uint256 public constant MAX_USD_PER_WALLET = 50_000 * 1 ether;
 ```
 
 
@@ -56,7 +56,7 @@ uint16 internal constant BASIS_FEE_DIVISOR = 10_000;
 
 ```solidity
 bytes32 internal constant _REFERRAL_TYPEHASH = keccak256(
-    "PurchaseDetails(bytes32 codeHash,uint8 refType,address buyer,address asset,uint256 amount,uint256 roundId,uint256 nonce,uint256 deadline)"
+    "PurchaseDetails(string refCode,uint8 refType,address buyer,address asset,uint256 amount,uint256 roundId,uint256 nonce,uint256 deadline)"
 );
 ```
 

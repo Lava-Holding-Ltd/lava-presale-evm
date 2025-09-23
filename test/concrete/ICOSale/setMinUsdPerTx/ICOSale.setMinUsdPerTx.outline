@@ -1,0 +1,19 @@
+ICOSale.setMinUsdPerTx
+
+when called by the owner with a non-zero value
+    it updates minUsdPerTx to the new value
+        expect minUsdPerTx == newValue
+    it emits MinUsdPerTxUpdated
+        expect event with correct parameters
+
+when called by the owner and overwriting a previous non-zero value
+    it updates and emits correctly
+        expect minUsdPerTx == newValue and event emitted
+
+when _minUsdPerTx is zero
+    it reverts and does not change state
+        expect revert with Errors.ZeroAmount
+
+when called by a non-owner
+    it reverts and does not change state
+        expect revert with OwnableUnauthorizedAccount error

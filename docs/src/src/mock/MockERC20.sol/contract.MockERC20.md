@@ -1,5 +1,5 @@
 # MockERC20
-[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/bad4141a2aa5e099145889e50ed8ebad2fa94115/src/mock/MockERC20.sol)
+[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/94fdb9bebf4beec3b3456b7886da7de39447ccbb/src/mock/MockERC20.sol)
 
 **Inherits:**
 ERC20

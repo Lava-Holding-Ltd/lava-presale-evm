@@ -57,10 +57,6 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     /// @dev Once finalized, no more deposits are allowed
     bool public saleFinalized;
 
-    /// @notice The boolean indicating if the sale was successful (i.e., soft cap reached)
-    /// @dev This is set to true only if the soft cap is reached upon finalization
-    bool public saleSuccessful;
-
     /// @notice The mapping keeps details of each sale round
     /// @dev The general sale parameters are defined in the Round struct, schema: roundId => Round
     mapping(uint256 => Round) public rounds;
@@ -89,12 +85,12 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     mapping(uint8 => uint16) public referralBonusBpsByType;
 
     /// @notice The mapping tracks total USD raised per referral code (normalized to 18 decimals)
-    /// @dev The key is the hash of the referral code
-    mapping(bytes32 => uint256) public refTotalUsd;
+    /// @dev The key is the string of the referral code
+    mapping(string => uint256) public refTotalUsd;
 
     /// @notice The mapping tracks total bonus tokens awarded per referral code
-    /// @dev The key is the hash of the referral code
-    mapping(bytes32 => uint256) public refTotalBonusTokens;
+    /// @dev The key is the string of the referral code
+    mapping(string => uint256) public refTotalBonusTokens;
 
     /// @notice Fallback function to receive Ether
     receive() external payable { }
@@ -125,9 +121,8 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     /// @inheritdoc IICOSale
     function rescueFunds(address _token, uint256 _amount) external nonReentrant onlyOwner {
         require(_amount != 0, Errors.ZeroAmount());
-        require(saleFinalized && saleSuccessful, Errors.SaleNotFinished());
 
-        if (_token != address(0)) {
+        if (_token != address(0) && _token != Constants.WETH) {
             IERC20(_token).safeTransfer(TREASURY_WALLET, _amount);
         } else {
             require(_amount <= address(this).balance, Errors.InsufficientBalance());
@@ -161,44 +156,17 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     }
 
     /// @inheritdoc IICOSale
-    function finalizeSale(bool _success) external onlyOwner {
+    function finalizeSale() external onlyOwner {
         require(!saleFinalized, Errors.SaleAlreadyFinalized());
         saleFinalized = true;
-        saleSuccessful = _success;
-        emit SaleFinalized(saleSuccessful, totalUsdRaised, _msgSender());
+        emit SaleFinalized(totalUsdRaised, _msgSender());
     }
 
     /// @inheritdoc IICOSale
-    function claimRefund(address asset) external nonReentrant {
-        require(saleFinalized, Errors.SaleNotFinished());
-        require(!saleSuccessful, Errors.SaleSuccessful());
-
-        bool isEth = (asset == address(0) || asset == Constants.WETH);
-        address key = isEth ? Constants.WETH : asset;
-
-        uint256 amt = refundable[_msgSender()][key];
-        require(amt != 0, Errors.NoRefund());
-
-        refundable[_msgSender()][key] = 0;
-
-        if (isEth) {
-            require(address(this).balance >= amt, Errors.InsufficientBalance());
-            Address.sendValue(payable(_msgSender()), amt);
-        } else {
-            require(IERC20(asset).balanceOf(address(this)) >= amt, Errors.InsufficientBalance());
-            IERC20(asset).safeTransfer(_msgSender(), amt);
-        }
-        emit RefundClaimed(_msgSender(), key, amt);
-    }
-
-    /// @inheritdoc IICOSale
-    function setNewRound(
-        uint256 _startTime,
-        uint256 _endTime,
-        uint256 _tokenPrice,
-        uint256 _capTotal,
-        uint256 _capPerUser
-    ) external onlyOwner {
+    function setNewRound(uint256 _startTime, uint256 _endTime, uint256 _tokenPrice, uint256 _capTotal)
+        external
+        onlyOwner
+    {
         require(_startTime != 0 && _endTime != 0 && _startTime < _endTime, Errors.InvalidTimeframe());
         require(_tokenPrice != 0 && _capTotal != 0, Errors.ZeroAmount());
 
@@ -214,22 +182,21 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
             tokenPrice: _tokenPrice,
             capTotal: _capTotal,
             soldTokens: 0,
-            capPerUser: _capPerUser,
             active: true
         });
 
-        emit NewRoundSet(newId, _startTime, _endTime, _tokenPrice, _capTotal, _capPerUser);
+        emit NewRoundSet(newId, _startTime, _endTime, _tokenPrice, _capTotal);
     }
 
     /// @inheritdoc IICOSale
     function buyETH(PurchaseDetails calldata _ref, bytes calldata _sig) external payable nonReentrant {
         require(!saleFinalized, Errors.SaleAlreadyFinalized());
         require(msg.value != 0 && msg.value == _ref.amount, Errors.ZeroAmount());
-        require(_ref.asset == Constants.WETH, Errors.NotAcceptedAsset());
+        require(_ref.asset == Constants.WETH || _ref.asset == address(0), Errors.NotAcceptedAsset());
 
         if (_ref.refType != uint8(RefType.NoReferral)) {
             require(
-                _ref.codeHash != bytes32(0)
+                bytes(_ref.refCode).length != 0
                     && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
                 Errors.InvalidReferralType()
             );
@@ -240,7 +207,7 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
         Address.sendValue(payable(TREASURY_WALLET), msg.value);
         refundable[_msgSender()][Constants.WETH] += msg.value;
 
-        _buyChecksAndEffects(_ref.asset, _ref.amount, _msgSender(), _ref.codeHash, _ref.refType);
+        _buyChecksAndEffects(_ref.asset, _ref.amount, _msgSender(), _ref.refCode, _ref.refType);
     }
 
     /// @inheritdoc IICOSale
@@ -251,7 +218,7 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
 
         if (_ref.refType != uint8(RefType.NoReferral)) {
             require(
-                _ref.codeHash != bytes32(0)
+                bytes(_ref.refCode).length != 0
                     && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
                 Errors.InvalidReferralType()
             );
@@ -262,25 +229,27 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
         IERC20(_ref.asset).safeTransferFrom(_msgSender(), TREASURY_WALLET, _ref.amount);
         refundable[_msgSender()][_ref.asset] += _ref.amount;
 
-        _buyChecksAndEffects(_ref.asset, _ref.amount, _msgSender(), _ref.codeHash, _ref.refType);
+        _buyChecksAndEffects(_ref.asset, _ref.amount, _msgSender(), _ref.refCode, _ref.refType);
     }
 
     /// @dev Internal function to handle purchase checks and state updates
     /// @param _payAsset The address of the asset used for payment
     /// @param _payAmount The amount of the asset used for payment
     /// @param _buyer The address of the buyer
-    /// @param _codeHash The hash of the referral code (if any)
+    /// @param _refCode The referral code used (if any)
     /// @param _refType The type of referral (if any)
     function _buyChecksAndEffects(
         address _payAsset,
         uint256 _payAmount,
         address _buyer,
-        bytes32 _codeHash,
+        string calldata _refCode,
         uint8 _refType
     ) internal {
         Round storage r = rounds[currentRoundId];
         require(r.active, Errors.InactiveRound());
         require(block.timestamp >= r.startTime && block.timestamp <= r.endTime, Errors.InvalidTimeframe());
+
+        if (_payAsset == address(0)) _payAsset = Constants.WETH;
 
         uint256 normalizedAmount = Utils._normalizeTo18Decimals(_payAsset, _payAmount);
         uint256 priceAsset = ORACLE_ADAPTER.getPriceInUSD(_payAsset);
@@ -292,12 +261,9 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
 
         uint256 base = usdValue * 1 ether / r.tokenPrice;
         uint256 refBonus =
-            (_codeHash != bytes32(0)) ? base * referralBonusBpsByType[_refType] / Constants.BASIS_FEE_DIVISOR : 0;
+            (bytes(_refCode).length != 0) ? base * referralBonusBpsByType[_refType] / Constants.BASIS_FEE_DIVISOR : 0;
         uint256 toBuyer = base + refBonus;
 
-        if (r.capPerUser != 0) {
-            require(toBuyer <= (r.capPerUser - roundBuyerAllocation[currentRoundId][_buyer]), Errors.CapReached());
-        }
         require(toBuyer <= (r.capTotal - r.soldTokens), Errors.CapReached());
         require(toBuyer <= (MAX_TOTAL_ALLOCATION_TOKENS - totalAllocatedTokens), Errors.CapReached());
 
@@ -309,22 +275,21 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
         totalBuyerAllocation[_buyer] += toBuyer;
         totalAllocatedTokens += toBuyer;
 
-        if (_codeHash != bytes32(0)) {
-            refTotalUsd[_codeHash] += usdValue;
-            refTotalBonusTokens[_codeHash] += refBonus;
-            emit ReferralApplied(_buyer, _codeHash, _refType, currentRoundId, usdValue, base, refBonus);
+        if (bytes(_refCode).length != 0) {
+            refTotalUsd[_refCode] += usdValue;
+            refTotalBonusTokens[_refCode] += refBonus;
         }
 
-        emit Purchased(_buyer, _payAsset, currentRoundId, normalizedAmount, usdValue, base, refBonus, toBuyer);
+        emit Purchased(
+            currentRoundId, _buyer, _refCode, _refType, _payAsset, normalizedAmount, usdValue, base, refBonus, toBuyer
+        );
     }
 
     /// @dev Internal function to verify the referral signature and update the nonce
     /// @param _ref The referral details structure
     /// @param _signature The EIP-712 signature to verify
     function _verifyReferralSignature(PurchaseDetails calldata _ref, bytes calldata _signature) internal {
-        require(_ref.amount != 0, Errors.ZeroAmount());
         require(_ref.buyer == _msgSender(), Errors.NotBuyer());
-        require(_ref.asset != address(0), Errors.ZeroAddress());
         require(_ref.roundId == currentRoundId, Errors.InactiveRound());
         require(_ref.nonce == nonces(_ref.buyer), Errors.NonceMismatch());
         require(_ref.deadline >= block.timestamp, Errors.ExpiredSignature());
@@ -333,7 +298,7 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
             keccak256(
                 abi.encode(
                     Constants._REFERRAL_TYPEHASH,
-                    _ref.codeHash,
+                    _ref.refCode,
                     _ref.refType,
                     _ref.buyer,
                     _ref.asset,

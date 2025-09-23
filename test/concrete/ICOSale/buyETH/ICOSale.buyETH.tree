@@ -1,0 +1,40 @@
+ICOSale.buyETH
+├── when sale is not finalized and all provided params are valid and round checks pass
+│   ├── it forwards ETH to TREASURY_WALLET
+│   ├── it increases refundable[buyer][WETH] by msg.value
+│   ├── it updates totals and allocations
+│   └── it emits Purchased event with correct arguments
+├── when sale is finalized
+│   └── it reverts with SaleAlreadyFinalized
+├── when msg.value is zero or msg.value != _ref.amount
+│   └── it reverts with ZeroAmount
+├── when _ref.asset is not WETH or address(0)
+│   └── it reverts with NotAcceptedAsset
+├── when _ref.refType is not NoReferral and refCode is empty
+│   └── it reverts with InvalidReferralType
+├── when _ref.refType is not one of Influencer or Media and not NoReferral
+│   └── it reverts with InvalidReferralType
+├── when _ref.buyer != msg.sender (signature payload)
+│   └── it reverts with NotBuyer
+├── when _ref.roundId != currentRoundId (signature payload)
+│   └── it reverts with InactiveRound
+├── when _ref.nonce != nonces(_ref.buyer) (signature payload)
+│   └── it reverts with NonceMismatch
+├── when _ref.deadline < block.timestamp (signature payload)
+│   └── it reverts with ExpiredSignature
+├── when recovered signer != owner (signature payload)
+│   └── it reverts with InvalidSignature
+├── when the current round is inactive
+│   └── it reverts with InactiveRound
+├── when block.timestamp is outside [startTime, endTime]
+│   └── it reverts with InvalidTimeframe
+├── when usdValue < minUsdPerTx
+│   └── it reverts with UnderMin
+├── when totalUsdRaised + usdValue > HARD_CAP_USD
+│   └── it reverts with HardCapExceeded
+├── when walletUsdRaised[buyer] + usdValue > MAX_USD_PER_WALLET
+│   └── it reverts with WalletCapExceeded
+├── when toBuyer > (round.capTotal - round.soldTokens)
+│   └── it reverts with CapReached
+└── when toBuyer > (MAX_TOTAL_ALLOCATION_TOKENS - totalAllocatedTokens)
+    └── it reverts with CapReached

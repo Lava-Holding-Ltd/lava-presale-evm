@@ -1,0 +1,31 @@
+ICOSale.setReferralTypeBps
+
+when called by the owner with _refType = Influencer and _refPercentage ≤ BASIS_FEE_DIVISOR
+    it sets the percentage and emits the event
+        expect referralBonusBpsByType[Influencer] == _refPercentage
+        expect emit ReferralTypePercentageUpdated event with correct parameters
+
+when called by the owner with _refType = Media and _refPercentage ≤ BASIS_FEE_DIVISOR
+    it sets the percentage and emits the event
+        expect referralBonusBpsByType[Media] == _refPercentage
+        expect emit ReferralTypePercentageUpdated event with correct parameters
+
+when overwriting an existing percentage
+    it updates the stored value and emits the event
+        expect mapping == newValue and event emitted
+
+when _refPercentage is 0
+    it succeeds and stores 0
+        expect mapping == 0
+
+when _refType is invalid
+    it reverts and does not change state
+        expect revert with Errors.InvalidReferralType
+
+when _refPercentage > BASIS_FEE_DIVISOR
+    it reverts and does not change state
+        expect revert with Errors.InvalidReferralPercentage
+
+when called by a non-owner
+    it reverts and does not change state
+        expect revert with Ownable.OwnableUnauthorizedAccount including caller

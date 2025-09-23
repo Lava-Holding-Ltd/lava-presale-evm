@@ -1,0 +1,19 @@
+ICOSale.setApprovedAsset
+
+when called by the owner with a non-zero asset and flipping from false → true or vice versa
+    it sets approval to correct indicator
+        expect isApprovedAsset[_asset] == indicator
+    it emits PayAssetApprovalSet
+        expect event with correct parameters
+
+when _asset is the zero address
+    it reverts and does not change state
+        expect revert with Errors.ZeroAddress
+
+when the indicator is already set to the requested value
+    it reverts and does not change state
+        expect revert with Errors.IndicatorAlreadySet
+
+when called by a non-owner
+    it reverts and does not change state
+        expect revert with Ownable.OwnableUnauthorizedAccount including caller
