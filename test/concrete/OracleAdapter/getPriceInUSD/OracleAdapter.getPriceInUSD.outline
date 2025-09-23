@@ -1,0 +1,42 @@
+OracleAdapter.getPriceInUSD
+
+when token is USDC or token is USDT
+    it returns price 1:1 with 18 decimals
+        expect getPriceInUSD(USDC) == 1 ether
+        expect getPriceInUSD(USDT) == 1 ether
+
+when a feed exists and the answer is > 0 and fresh and feedDecimals == 18
+    it returns price as uint256(answer)
+        expect returned price == uint256(answer)
+
+when a feed exists and the answer is > 0 and fresh and feedDecimals < 18
+    it scales up to 1 ether
+        expect returned price == uint256(answer) * 10**(18 - feedDecimals)
+
+when a feed exists and the answer is > 0 and fresh and feedDecimals > 18
+    it scales down to 1 ether (integer division)
+        expect returned price == uint256(answer) / 10**(feedDecimals - 18)
+
+when a feed exists and the answer is ≤ 0
+    it reverts
+        expect revert with Errors.ZeroAmount
+
+when a feed exists and data is stale (now - updatedAt > heartbeats[token])
+    it reverts
+        expect revert with Errors.StalePriceFeed
+
+when a feed exists and freshness is exactly on the boundary (now - updatedAt == heartbeats[token])
+    it succeeds and returns the correctly scaled price
+        expect no revert and returned price matches the scaling for mocked decimals
+
+when no feed exists and manualPrices[token] != 0 and the manual price is fresh (now - manualLastUpdated ≤ manualUpdateInterval)
+    it returns the manual price
+        expect returned price == manualPrices[token]
+
+when no feed exists and manualPrices[token] == 0
+    it reverts
+        expect revert with Errors.ZeroAmount
+
+when no feed exists and the manual price is stale (now - manualLastUpdated > manualUpdateInterval)
+    it reverts
+        expect revert with Errors.StaleManualPrice

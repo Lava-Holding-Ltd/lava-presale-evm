@@ -1,0 +1,15 @@
+OracleAdapter.setPriceFeeds
+├── when called by the owner with valid, equal-length arrays
+│   ├── it sets priceFeeds[token] = feed for each token
+│   ├── it sets heartbeats[token] = heartbeat[i] for each token
+│   └── it emits PriceFeedSet event with the provided arrays
+├── when updating existing entries
+│   └── it overwrites previous feed and heartbeat values
+├── when arrays have different lengths
+│   └── it reverts with LengthMismatch
+├── when any token or feed address is zero
+│   └── it reverts with ZeroAddress and does not change any state
+├── when any heartbeat value is zero
+│   └── it reverts with ZeroAmount and does not change any state
+└── when called by a non-owner
+    └── it reverts with OwnableUnauthorizedAccount including the caller

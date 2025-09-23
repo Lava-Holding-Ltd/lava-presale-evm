@@ -1,0 +1,21 @@
+OracleAdapter.getPriceInUSD
+├── when token is USDC or token is USDT
+│   └── it returns price 1:1 with 18 decimals - 1 ether
+├── when a feed exists and the answer is > 0 and fresh and feedDecimals == 18
+│   └── it returns price as a result of `uint256(answer)`
+├── when a feed exists and the answer is > 0 and fresh and feedDecimals < 18
+│   └── it returns price via `uint256(answer) * 10**(18 - feedDecimals)` formula
+├── when a feed exists and the answer is > 0 and fresh and feedDecimals > 18
+│   └── it returns price via `uint256(answer) / 10**(feedDecimals - 18)`
+├── when a feed exists and the answer is ≤ 0
+│   └── it reverts with ZeroAmount
+├── when a feed exists and data is stale (now - updatedAt > heartbeats[token])
+│   └── it reverts with StalePriceFeed
+├── when a feed exists and freshness is exactly on the boundary (now - updatedAt == heartbeats[token])
+│   └── it succeeds and returns the correctly scaled price
+├── when no feed exists and manualPrices[token] != 0 and the manual price is fresh (now - manualLastUpdated ≤ manualUpdateInterval)
+│   └── it returns manualPrices[token]
+├── when no feed exists and manualPrices[token] == 0
+│   └── it reverts with ZeroAmount
+└── when no feed exists and the manual price is stale (now - manualLastUpdated > manualUpdateInterval)
+    └── it reverts with StaleManualPrice

@@ -1,0 +1,40 @@
+ICOSale.setNewRound
+
+when called by the owner with valid times, non-zero price & cap, and no prior round
+    it initializes the first round (id 0)
+        expect currentRoundId == 0
+        expect rounds[0].startTime == _startTime
+        expect rounds[0].endTime == _endTime
+        expect rounds[0].tokenPrice == _tokenPrice
+        expect rounds[0].capTotal == _capTotal
+        expect rounds[0].soldTokens == 0
+        expect rounds[0].active == true
+    it emits NewRoundSet
+        expect event NewRoundSet with correct parameters
+
+when called by the owner with valid params and a prior active round
+    it deactivates the previous round
+        expect previousRound.active == false
+    it increments the round id and creates the new round
+        expect currentRoundId == previousId + 1
+        expect rounds[currentRoundId] fields set as provided
+        expect rounds[currentRoundId].soldTokens == 0
+        expect rounds[currentRoundId].active == true
+    it emits NewRoundSet
+        expect event with correct params
+
+when newId >= Constants.MAX_ROUNDS
+    it reverts
+        expect revert with Errors.CapReached
+
+when timeframe is invalid (_startTime == 0 or _endTime == 0 or _startTime >= _endTime)
+    it reverts
+        expect revert with Errors.InvalidTimeframe
+
+when _tokenPrice == 0 or _capTotal == 0
+    it reverts
+        expect revert with Errors.ZeroAmount
+
+when called by a non-owner
+    it reverts
+        expect revert with OwnableUnauthorizedAccount error including the caller

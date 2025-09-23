@@ -1,0 +1,29 @@
+OracleAdapter.setPriceFeeds
+
+when called by the owner with valid, equal-length arrays
+    it sets priceFeeds for all tokens
+        expect priceFeeds[token[i]] to equal feeds[i] for each i
+    it sets heartbeats for all tokens
+        expect heartbeats[token[i]] to equal heartbeat[i] for each i
+    it emits PriceFeedSet event with the provided arrays
+        expect event with (tokens, feeds, heartbeat)
+
+when updating existing entries
+    it overwrites previous feed and heartbeat values
+        expect mappings updated to new values
+
+when arrays have different lengths
+    it reverts
+        expect revert with Errors.LengthMismatch
+
+when any token or feed address is zero
+    it reverts 
+        expect revert with ZeroAddress and does not change any state
+
+when any heartbeat value is zero
+    it reverts
+        expect revert with ZeroAmount and does not change any state
+
+when called by a non-owner
+    it reverts
+        expect revert with OwnableUnauthorizedAccount including the caller

@@ -1,0 +1,10 @@
+ICOSale.setMinUsdPerTx
+├── when called by the owner with a non-zero value
+│   ├── it updates minUsdPerTx to the new value
+│   └── it emits MinUsdPerTxUpdated with correct parameters
+├── when called by the owner and overwriting a previous non-zero value
+│   └── it updates minUsdPerTx to the new value and emits the event
+├── when _minUsdPerTx is zero
+│   └── it reverts with ZeroAmount and does not change state
+└── when called by a non-owner
+    └── it reverts with OwnableUnauthorizedAccount and does not change state

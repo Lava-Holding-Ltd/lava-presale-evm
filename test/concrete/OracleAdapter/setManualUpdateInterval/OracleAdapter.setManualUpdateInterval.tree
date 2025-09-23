@@ -1,0 +1,8 @@
+OracleAdapter.setManualUpdateInterval
+├── when called by the owner with a non-zero interval
+│   ├── it should update the manualUpdateInterval storage value
+│   └── it should emit ManualUpdateIntervalSet with correct parameters
+├── when called by a non-owner
+│   └── it should revert with OwnableUnauthorizedAccount including the caller
+└── when interval is zero
+    └── it should revert with ZeroAmount error

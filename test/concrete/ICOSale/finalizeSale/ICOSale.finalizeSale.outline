@@ -1,0 +1,15 @@
+ICOSale.finalizeSale
+
+when called by the owner and saleFinalized is false
+    it sets saleFinalized to true
+        expect saleFinalized == true
+    it emits SaleFinalized
+        expect event with correct totalUsdRaised, caller params
+
+when called by the owner and saleFinalized is already true
+    it reverts
+        expect revert with Errors.SaleAlreadyFinalized
+
+when called by a non-owner
+    it reverts
+        expect revert with Ownable.OwnableUnauthorizedAccount including the caller

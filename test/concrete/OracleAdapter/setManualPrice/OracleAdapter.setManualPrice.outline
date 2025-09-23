@@ -1,0 +1,29 @@
+OracleAdapter.setManualPrice
+
+when called by the owner with a valid token and non-zero price and after the interval
+    it updates manualPrices[token] to the new price
+        expect manualPrices[token] to equal the new price
+    it updates manualLastUpdated[token] to block.timestamp
+        expect manualLastUpdated[token] to equal block.timestamp (≈ within 1s tolerance)
+    it emits ManualPriceUpdated event with correct parameters
+        expect event with (token, price, timestamp == block.timestamp)
+
+when updating an existing token price after the interval
+    it overwrites the previous price and updates the timestamp
+        expect new price and newer timestamp
+
+when called before lastUpdated + manualUpdateInterval
+    it reverts
+        expect revert with EarlyManualUpdate
+
+when token is the zero address
+    it reverts
+        expect revert with ZeroAddress
+
+when price is zero
+    it reverts
+        expect revert with ZeroAmount
+
+when called by a non-owner
+    it reverts
+        expect revert with OwnableUnauthorizedAccount and the caller address
