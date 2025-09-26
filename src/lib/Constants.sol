@@ -20,7 +20,7 @@ library Constants {
 
     /// @dev The typehash for the PurchaseDetails structure used in EIP-712 signatures
     bytes32 internal constant _REFERRAL_TYPEHASH = keccak256(
-        "PurchaseDetails(string refCode,uint8 refType,address buyer,address asset,uint256 amount,uint256 roundId,uint256 nonce,uint256 deadline)"
+        "PurchaseDetails(bytes32 refCode,uint8 refType,address buyer,address asset,uint256 amount,uint256 roundId,uint256 nonce,uint256 deadline)"
     );
 
     /// @dev The address of the USDC token on Ethereum mainnet

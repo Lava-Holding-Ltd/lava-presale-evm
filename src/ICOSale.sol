@@ -102,7 +102,7 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     /// @param _maxTotalAllocationTokens The maximum number of tokens available for sale
     constructor(address _owner, address _oracle, address _treasury, uint256 _maxTotalAllocationTokens)
         Ownable(_owner)
-        EIP712("ICOSale", "v1")
+        EIP712("ICOSale", "1")
     {
         require(_treasury != address(0) && _oracle != address(0), Errors.ZeroAddress());
         require(_maxTotalAllocationTokens != 0, Errors.ZeroAmount());
@@ -189,14 +189,18 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     }
 
     /// @inheritdoc IICOSale
-    function buyETH(PurchaseDetails calldata _ref, bytes calldata _sig) external payable nonReentrant {
+    function buyETH(PurchaseDetails calldata _ref, bytes calldata _sig, string calldata _refCodeString)
+        external
+        payable
+        nonReentrant
+    {
         require(!saleFinalized, Errors.SaleAlreadyFinalized());
         require(msg.value != 0 && msg.value == _ref.amount, Errors.ZeroAmount());
         require(_ref.asset == Constants.WETH || _ref.asset == address(0), Errors.NotAcceptedAsset());
 
         if (_ref.refType != uint8(RefType.NoReferral)) {
             require(
-                bytes(_ref.refCode).length != 0
+                _ref.refCode != bytes32(0)
                     && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
                 Errors.InvalidReferralType()
             );
@@ -207,18 +211,21 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
         Address.sendValue(payable(TREASURY_WALLET), msg.value);
         refundable[_msgSender()][Constants.WETH] += msg.value;
 
-        _buyChecksAndEffects(_ref.asset, _ref.amount, _msgSender(), _ref.refCode, _ref.refType);
+        _buyChecksAndEffects(_ref.asset, _ref.amount, _msgSender(), _refCodeString, _ref.refType);
     }
 
     /// @inheritdoc IICOSale
-    function buyToken(PurchaseDetails calldata _ref, bytes calldata _sig) external nonReentrant {
+    function buyToken(PurchaseDetails calldata _ref, bytes calldata _sig, string calldata _refCodeString)
+        external
+        nonReentrant
+    {
         require(!saleFinalized, Errors.SaleAlreadyFinalized());
         require(_ref.amount != 0, Errors.ZeroAmount());
         require(_ref.asset != address(0) && isApprovedAsset[_ref.asset], Errors.NotAcceptedAsset());
 
         if (_ref.refType != uint8(RefType.NoReferral)) {
             require(
-                bytes(_ref.refCode).length != 0
+                _ref.refCode != bytes32(0)
                     && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
                 Errors.InvalidReferralType()
             );
@@ -229,7 +236,7 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
         IERC20(_ref.asset).safeTransferFrom(_msgSender(), TREASURY_WALLET, _ref.amount);
         refundable[_msgSender()][_ref.asset] += _ref.amount;
 
-        _buyChecksAndEffects(_ref.asset, _ref.amount, _msgSender(), _ref.refCode, _ref.refType);
+        _buyChecksAndEffects(_ref.asset, _ref.amount, _msgSender(), _refCodeString, _ref.refType);
     }
 
     /// @dev Internal function to handle purchase checks and state updates

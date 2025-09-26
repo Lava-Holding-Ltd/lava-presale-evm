@@ -1,5 +1,5 @@
 # Errors
-[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/94fdb9bebf4beec3b3456b7886da7de39447ccbb/src/lib/Errors.sol)
+[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/12edc468af8ebe3b43e9dc72afaabb19ec99f22a/src/lib/Errors.sol)
 
 This library contains custom error definitions for the core SCs
 
@@ -14,19 +14,11 @@ error ZeroAddress();
 ```
 
 ### ZeroAmount
-*The custom error for input zero amount deposits/withdrawals or position params*
+*The custom error for input zero amount re purchase params*
 
 
 ```solidity
 error ZeroAmount();
-```
-
-### NoRefund
-*The custom error for cases when no refund is due*
-
-
-```solidity
-error NoRefund();
 ```
 
 ### UnderMin
@@ -126,7 +118,7 @@ error InvalidBuyerBonus();
 ```
 
 ### ActiveRoundExists
-*The custom error for cases when the current round is active y*
+*The custom error for cases when the current round is active*
 
 
 ```solidity
@@ -157,28 +149,12 @@ error NotAcceptedAsset();
 error SaleNotFinished();
 ```
 
-### SaleSuccessful
-*The custom error for cases when the sale was successful (i.e., soft cap reached)*
-
-
-```solidity
-error SaleSuccessful();
-```
-
 ### SaleAlreadyFinalized
 *The custom error for cases when the sale has already been finalized*
 
 
 ```solidity
 error SaleAlreadyFinalized();
-```
-
-### PriceChangeRequiresPause
-*The custom error for cases when price change is attempted without pausing the round*
-
-
-```solidity
-error PriceChangeRequiresPause();
 ```
 
 ### InvalidReferralType

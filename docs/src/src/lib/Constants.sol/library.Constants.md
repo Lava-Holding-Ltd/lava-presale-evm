@@ -1,5 +1,5 @@
 # Constants
-[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/94fdb9bebf4beec3b3456b7886da7de39447ccbb/src/lib/Constants.sol)
+[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/12edc468af8ebe3b43e9dc72afaabb19ec99f22a/src/lib/Constants.sol)
 
 This library contains constants for the core SCs
 
@@ -56,7 +56,7 @@ uint16 internal constant BASIS_FEE_DIVISOR = 10_000;
 
 ```solidity
 bytes32 internal constant _REFERRAL_TYPEHASH = keccak256(
-    "PurchaseDetails(string refCode,uint8 refType,address buyer,address asset,uint256 amount,uint256 roundId,uint256 nonce,uint256 deadline)"
+    "PurchaseDetails(bytes32 refCode,uint8 refType,address buyer,address asset,uint256 amount,uint256 roundId,uint256 nonce,uint256 deadline)"
 );
 ```
 

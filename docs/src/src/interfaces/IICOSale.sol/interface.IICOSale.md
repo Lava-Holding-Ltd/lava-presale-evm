@@ -1,5 +1,5 @@
 # IICOSale
-[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/94fdb9bebf4beec3b3456b7886da7de39447ccbb/src/interfaces/IICOSale.sol)
+[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/12edc468af8ebe3b43e9dc72afaabb19ec99f22a/src/interfaces/IICOSale.sol)
 
 This interface defines the structures, events and function's prototypes for the ICOSale contract
 
@@ -105,7 +105,7 @@ Purchases tokens during an active sale round using ETH (exists ability to buy wi
 
 
 ```solidity
-function buyETH(PurchaseDetails calldata ref, bytes calldata sig) external payable;
+function buyETH(PurchaseDetails calldata ref, bytes calldata sig, string calldata refCodeString) external payable;
 ```
 **Parameters**
 
@@ -113,6 +113,7 @@ function buyETH(PurchaseDetails calldata ref, bytes calldata sig) external payab
 |----|----|-----------|
 |`ref`|`PurchaseDetails`|The purchase details structure containing referral information|
 |`sig`|`bytes`|The EIP-712 signature for the purchase details|
+|`refCodeString`|`string`|The referral code string used for the purchase (if any)|
 
 
 ### buyToken
@@ -121,7 +122,7 @@ Purchases tokens during an active sale round using a specified approved ERC20 to
 
 
 ```solidity
-function buyToken(PurchaseDetails calldata ref, bytes calldata sig) external;
+function buyToken(PurchaseDetails calldata ref, bytes calldata sig, string calldata refCodeString) external;
 ```
 **Parameters**
 
@@ -129,6 +130,7 @@ function buyToken(PurchaseDetails calldata ref, bytes calldata sig) external;
 |----|----|-----------|
 |`ref`|`PurchaseDetails`|The purchase details structure containing referral information|
 |`sig`|`bytes`|The EIP-712 signature for the purchase details|
+|`refCodeString`|`string`|The referral code string used for the purchase (if any)|
 
 
 ## Events
@@ -315,7 +317,7 @@ The structure defines the purchase details including referral information
 
 ```solidity
 struct PurchaseDetails {
-    string refCode;
+    bytes32 refCode;
     uint8 refType;
     address buyer;
     address asset;
@@ -330,7 +332,7 @@ struct PurchaseDetails {
 
 |Name|Type|Description|
 |----|----|-----------|
-|`refCode`|`string`|The referral code used for the purchase (if any)|
+|`refCode`|`bytes32`|The referral code used for the purchase (if any)|
 |`refType`|`uint8`|The type of referral (e.g., 0 for influencer, 1 for media, etc.)|
 |`buyer`|`address`|The address of the buyer making the purchase|
 |`asset`|`address`|The address of the asset (token) used for payment|

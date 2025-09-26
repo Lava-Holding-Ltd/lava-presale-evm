@@ -2,6 +2,7 @@
 pragma solidity 0.8.29;
 
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { Constants } from "src/lib/Constants.sol";
 
 /// @notice The Utils library provides utility functions for normalizing amounts to different decimal places
 /// @dev It includes functions to normalize amounts to 18 decimals and to convert from 18 decimals to 6 decimals
@@ -11,6 +12,7 @@ library Utils {
     /// @param amount The amount to normalize
     /// @return normalizedAmount The normalized amount in 18 decimals
     function _normalizeTo18Decimals(address asset, uint256 amount) internal view returns (uint256 normalizedAmount) {
+        if (asset == Constants.WETH) return amount;
         uint8 fromDecimals = IERC20Metadata(asset).decimals();
         normalizedAmount = _convertDecimals(amount, fromDecimals, 18);
     }

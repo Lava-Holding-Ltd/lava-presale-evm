@@ -30,7 +30,7 @@ interface IICOSale {
     /// @param nonce The unique nonce to prevent replay attacks
     /// @param deadline The timestamp by which the referral must be used
     struct PurchaseDetails {
-        string refCode;
+        bytes32 refCode;
         uint8 refType;
         address buyer;
         address asset;
@@ -144,10 +144,12 @@ interface IICOSale {
     /// @dev The user must send ETH along with the transaction to make a purchase
     /// @param ref The purchase details structure containing referral information
     /// @param sig The EIP-712 signature for the purchase details
-    function buyETH(PurchaseDetails calldata ref, bytes calldata sig) external payable;
+    /// @param refCodeString The referral code string used for the purchase (if any)
+    function buyETH(PurchaseDetails calldata ref, bytes calldata sig, string calldata refCodeString) external payable;
 
     /// @notice Purchases tokens during an active sale round using a specified approved ERC20 token (exists ability to buy with referral)
     /// @param ref The purchase details structure containing referral information
     /// @param sig The EIP-712 signature for the purchase details
-    function buyToken(PurchaseDetails calldata ref, bytes calldata sig) external;
+    /// @param refCodeString The referral code string used for the purchase (if any)
+    function buyToken(PurchaseDetails calldata ref, bytes calldata sig, string calldata refCodeString) external;
 }
