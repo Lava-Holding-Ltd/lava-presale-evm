@@ -6,10 +6,8 @@ pragma solidity 0.8.29;
 library Errors {
     /// @dev The custom error for zero address inputs
     error ZeroAddress();
-    /// @dev The custom error for input zero amount deposits/withdrawals or position params
+    /// @dev The custom error for input zero amount re purchase params
     error ZeroAmount();
-    /// @dev The custom error for cases when no refund is due
-    error NoRefund();
     /// @dev The custom error for minimum amount violations
     error UnderMin();
     /// @dev The custom error for maximum amount violations - e.g. cap reached
@@ -34,7 +32,7 @@ library Errors {
     error InvalidTimeframe();
     /// @dev The custom error for invalid buyer bonus inputs
     error InvalidBuyerBonus();
-    /// @dev The custom error for cases when the current round is active y
+    /// @dev The custom error for cases when the current round is active
     error ActiveRoundExists();
     /// @dev The custom error for cases when the current round is not active
     error InactiveRound();
@@ -42,12 +40,8 @@ library Errors {
     error NotAcceptedAsset();
     /// @dev The custom error for cases when the sale has not already been finalized
     error SaleNotFinished();
-    /// @dev The custom error for cases when the sale was successful (i.e., soft cap reached)
-    error SaleSuccessful();
     /// @dev The custom error for cases when the sale has already been finalized
     error SaleAlreadyFinalized();
-    /// @dev The custom error for cases when price change is attempted without pausing the round
-    error PriceChangeRequiresPause();
     /// @dev The custom error for cases when the provided referral type is invalid
     error InvalidReferralType();
     /// @dev The custom error for cases when the provided referral percentage is invalid

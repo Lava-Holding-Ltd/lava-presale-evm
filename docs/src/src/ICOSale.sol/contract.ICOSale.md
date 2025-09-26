@@ -1,5 +1,5 @@
 # ICOSale
-[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/94fdb9bebf4beec3b3456b7886da7de39447ccbb/src/ICOSale.sol)
+[Git Source](https://github.com/cowchainworkspace/lava-contracts/blob/12edc468af8ebe3b43e9dc72afaabb19ec99f22a/src/ICOSale.sol)
 
 **Inherits:**
 [IICOSale](/src/interfaces/IICOSale.sol/interface.IICOSale.md), EIP712, Ownable, ReentrancyGuard, Nonces
@@ -201,7 +201,7 @@ receive() external payable;
 ```solidity
 constructor(address _owner, address _oracle, address _treasury, uint256 _maxTotalAllocationTokens)
     Ownable(_owner)
-    EIP712("ICOSale", "v1");
+    EIP712("ICOSale", "1");
 ```
 **Parameters**
 
@@ -313,7 +313,10 @@ Purchases tokens during an active sale round using ETH (exists ability to buy wi
 
 
 ```solidity
-function buyETH(PurchaseDetails calldata _ref, bytes calldata _sig) external payable nonReentrant;
+function buyETH(PurchaseDetails calldata _ref, bytes calldata _sig, string calldata _refCodeString)
+    external
+    payable
+    nonReentrant;
 ```
 **Parameters**
 
@@ -321,6 +324,7 @@ function buyETH(PurchaseDetails calldata _ref, bytes calldata _sig) external pay
 |----|----|-----------|
 |`_ref`|`PurchaseDetails`||
 |`_sig`|`bytes`||
+|`_refCodeString`|`string`||
 
 
 ### buyToken
@@ -329,7 +333,9 @@ Purchases tokens during an active sale round using a specified approved ERC20 to
 
 
 ```solidity
-function buyToken(PurchaseDetails calldata _ref, bytes calldata _sig) external nonReentrant;
+function buyToken(PurchaseDetails calldata _ref, bytes calldata _sig, string calldata _refCodeString)
+    external
+    nonReentrant;
 ```
 **Parameters**
 
@@ -337,6 +343,7 @@ function buyToken(PurchaseDetails calldata _ref, bytes calldata _sig) external n
 |----|----|-----------|
 |`_ref`|`PurchaseDetails`||
 |`_sig`|`bytes`||
+|`_refCodeString`|`string`||
 
 
 ### _buyChecksAndEffects

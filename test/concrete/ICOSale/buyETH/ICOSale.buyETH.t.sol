@@ -43,7 +43,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
     function test_whenAllValid_noReferral_success() external {
         uint256 weiAmount = _usdToWei(20 ether);
 
-        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, "", 0, alice);
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, bytes32(0), 0, alice);
 
         uint256 treasuryBefore = PLATFORM_TREASURY_WALLET.balance;
         uint256 refundableBefore = tokenSale.refundable(alice, Constants.WETH);
@@ -57,7 +57,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         uint256 base = usdValue * 1 ether / roundPrice;
 
         vm.prank(alice);
-        tokenSale.buyETH{ value: weiAmount }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, "");
 
         assertEq(PLATFORM_TREASURY_WALLET.balance, treasuryBefore + weiAmount);
         assertEq(tokenSale.refundable(alice, Constants.WETH), refundableBefore + weiAmount);
@@ -80,7 +80,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         uint256 weiAmount = _usdToWei(50 ether);
 
         string memory code = "INFL-abc";
-        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, code, 1, alice);
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, keccak256(bytes(code)), 1, alice);
 
         uint256 usdValue = _weiToUsd(weiAmount);
         uint256 base = usdValue * 1 ether / roundPrice;
@@ -90,7 +90,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         uint256 refBonusBefore = tokenSale.refTotalBonusTokens(code);
 
         vm.prank(alice);
-        tokenSale.buyETH{ value: weiAmount }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, code);
 
         assertEq(tokenSale.refTotalUsd(code), refUsdBefore + usdValue);
         assertEq(tokenSale.refTotalBonusTokens(code), refBonusBefore + refBonus);
@@ -101,33 +101,33 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         tokenSale.finalizeSale();
 
         uint256 weiAmount = _usdToWei(20 ether);
-        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, "", 0, alice);
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, bytes32(0), 0, alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.SaleAlreadyFinalized.selector);
-        tokenSale.buyETH{ value: weiAmount }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, "");
     }
 
     function test_whenMsgValueZeroOrMismatch_revert() external {
         uint256 weiAmount = _usdToWei(15 ether);
 
-        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, "", 0, alice);
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, bytes32(0), 0, alice);
         vm.prank(alice);
         vm.expectRevert(Errors.ZeroAmount.selector);
-        tokenSale.buyETH{ value: weiAmount - 1 }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount - 1 }(pd, sig, "");
 
         pd.amount = 0;
         sig = _signPurchase(OWNER_PK, pd);
         vm.prank(alice);
         vm.expectRevert(Errors.ZeroAmount.selector);
-        tokenSale.buyETH{ value: 0 }(pd, sig);
+        tokenSale.buyETH{ value: 0 }(pd, sig, "");
     }
 
     function test_whenAssetNotWETH_revert() external {
         uint256 weiAmount = _usdToWei(12 ether);
 
         IICOSale.PurchaseDetails memory pd = IICOSale.PurchaseDetails({
-            refCode: "",
+            refCode: bytes32(0),
             refType: 0,
             buyer: alice,
             asset: Constants.USDC,
@@ -140,32 +140,32 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
 
         vm.prank(alice);
         vm.expectRevert(Errors.NotAcceptedAsset.selector);
-        tokenSale.buyETH{ value: weiAmount }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, "");
     }
 
     function test_whenReferralTypeProvidedButEmptyCode_revert() external {
         uint256 weiAmount = _usdToWei(12 ether);
 
-        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, "", 1, alice);
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, bytes32(0), 1, alice);
         vm.prank(alice);
         vm.expectRevert(Errors.InvalidReferralType.selector);
-        tokenSale.buyETH{ value: weiAmount }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, "");
     }
 
     function test_whenReferralTypeUnknown_revert() external {
         uint256 weiAmount = _usdToWei(12 ether);
 
-        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, "X", 9, alice);
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, keccak256(bytes("X")), 9, alice);
         vm.prank(alice);
         vm.expectRevert(Errors.InvalidReferralType.selector);
-        tokenSale.buyETH{ value: weiAmount }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, "X");
     }
 
     function test_whenBuyerMismatch_revert() external {
         uint256 weiAmount = _usdToWei(12 ether);
 
         IICOSale.PurchaseDetails memory pd = IICOSale.PurchaseDetails({
-            refCode: "",
+            refCode: bytes32(0),
             refType: 0,
             buyer: alice,
             asset: Constants.WETH,
@@ -179,43 +179,43 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         deal(bob, 100 ether);
         vm.prank(bob);
         vm.expectRevert(Errors.NotBuyer.selector);
-        tokenSale.buyETH{ value: weiAmount }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, "");
     }
 
     function test_whenRoundIdMismatch_revert() external {
         uint256 weiAmount = _usdToWei(12 ether);
 
-        (IICOSale.PurchaseDetails memory pd,) = _prepare(weiAmount, "", 0, alice);
+        (IICOSale.PurchaseDetails memory pd,) = _prepare(weiAmount, bytes32(0), 0, alice);
         pd.roundId = tokenSale.currentRoundId() + 1;
         bytes memory sig = _signPurchase(OWNER_PK, pd);
 
         vm.prank(alice);
         vm.expectRevert(Errors.InactiveRound.selector);
-        tokenSale.buyETH{ value: weiAmount }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, "");
     }
 
     function test_whenNonceMismatch_revert() external {
         uint256 weiAmount = _usdToWei(12 ether);
 
-        (IICOSale.PurchaseDetails memory pd,) = _prepare(weiAmount, "", 0, alice);
+        (IICOSale.PurchaseDetails memory pd,) = _prepare(weiAmount, bytes32(0), 0, alice);
         pd.nonce = pd.nonce + 1;
         bytes memory sig = _signPurchase(OWNER_PK, pd);
 
         vm.prank(alice);
         vm.expectRevert(Errors.NonceMismatch.selector);
-        tokenSale.buyETH{ value: weiAmount }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, "");
     }
 
     function test_whenDeadlineExpired_revert() external {
         uint256 weiAmount = _usdToWei(12 ether);
 
-        (IICOSale.PurchaseDetails memory pd,) = _prepare(weiAmount, "", 0, alice);
+        (IICOSale.PurchaseDetails memory pd,) = _prepare(weiAmount, bytes32(0), 0, alice);
         pd.deadline = block.timestamp - 1;
         bytes memory sig = _signPurchase(OWNER_PK, pd);
 
         vm.prank(alice);
         vm.expectRevert(Errors.ExpiredSignature.selector);
-        tokenSale.buyETH{ value: weiAmount }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, "");
     }
 
     function test_whenSignerNotOwner_revert() external {
@@ -226,7 +226,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         uint256 weiAmount = _usdToWei(12 ether);
 
         IICOSale.PurchaseDetails memory pd = IICOSale.PurchaseDetails({
-            refCode: "",
+            refCode: bytes32(0),
             refType: 0,
             buyer: alice,
             asset: Constants.WETH,
@@ -244,7 +244,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
 
         vm.prank(alice);
         vm.expectRevert(Errors.InvalidSignature.selector);
-        tokenSale.buyETH{ value: weiAmount }(pd, badSig);
+        tokenSale.buyETH{ value: weiAmount }(pd, badSig, "");
     }
 
     function test_whenRoundInactive_revert() external {
@@ -257,7 +257,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         uint256 weiAmount = _usdToWei(12 ether);
 
         IICOSale.PurchaseDetails memory pd = IICOSale.PurchaseDetails({
-            refCode: "",
+            refCode: bytes32(0),
             refType: 0,
             buyer: alice,
             asset: Constants.WETH,
@@ -270,7 +270,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
 
         vm.prank(alice);
         vm.expectRevert(Errors.InactiveRound.selector);
-        tokenSale.buyETH{ value: weiAmount }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, "");
     }
 
     function test_whenOutsideTimeframe_revert() external {
@@ -278,11 +278,11 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         vm.warp(end + 1);
         _ensureFeedTimestampNotAhead();
 
-        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(1 ether, "", 0, alice);
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(1 ether, bytes32(0), 0, alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.InvalidTimeframe.selector);
-        tokenSale.buyETH{ value: 1 ether }(pd, sig);
+        tokenSale.buyETH{ value: 1 ether }(pd, sig, "");
     }
 
     function test_whenUnderMinUsd_revert() external {
@@ -291,10 +291,10 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
 
         uint256 weiAmount = _usdToWei(50 ether);
 
-        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, "", 0, alice);
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, bytes32(0), 0, alice);
         vm.prank(alice);
         vm.expectRevert(Errors.UnderMin.selector);
-        tokenSale.buyETH{ value: weiAmount }(pd, sig);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, "");
     }
 
     function test_whenExceedsWalletCap_revert() external {
@@ -307,16 +307,16 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         uint256 maxPerWallet = Constants.MAX_USD_PER_WALLET;
 
         uint256 wei1 = (maxPerWallet - 1 ether) * 1 ether / price;
-        (IICOSale.PurchaseDetails memory pd1, bytes memory sig1) = _prepare(wei1, "", 0, alice);
+        (IICOSale.PurchaseDetails memory pd1, bytes memory sig1) = _prepare(wei1, bytes32(0), 0, alice);
         vm.prank(alice);
-        tokenSale.buyETH{ value: wei1 }(pd1, sig1);
+        tokenSale.buyETH{ value: wei1 }(pd1, sig1, "");
 
         uint256 wei2 = 2 ether * 1 ether / price;
-        (IICOSale.PurchaseDetails memory pd2, bytes memory sig2) = _prepare(wei2, "", 0, alice);
+        (IICOSale.PurchaseDetails memory pd2, bytes memory sig2) = _prepare(wei2, bytes32(0), 0, alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.WalletCapExceeded.selector);
-        tokenSale.buyETH{ value: wei2 }(pd2, sig2);
+        tokenSale.buyETH{ value: wei2 }(pd2, sig2, "");
     }
 
     function test_whenExceedsRoundCap_revert() external {
@@ -333,17 +333,17 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         uint256 usd1 = (tinyCap - 1 ether) * pricePerToken / 1 ether;
         uint256 wei1 = (usd1 * 1 ether) / price;
 
-        (IICOSale.PurchaseDetails memory pd1, bytes memory sig1) = _prepare(wei1, "", 0, alice);
+        (IICOSale.PurchaseDetails memory pd1, bytes memory sig1) = _prepare(wei1, bytes32(0), 0, alice);
         vm.prank(alice);
-        tokenSale.buyETH{ value: wei1 }(pd1, sig1);
+        tokenSale.buyETH{ value: wei1 }(pd1, sig1, "");
 
         uint256 usd2 = 2 ether * pricePerToken / 1 ether;
         uint256 wei2 = usd2 * 1 ether / price;
 
-        (IICOSale.PurchaseDetails memory pd2, bytes memory sig2) = _prepare(wei2, "", 0, alice);
+        (IICOSale.PurchaseDetails memory pd2, bytes memory sig2) = _prepare(wei2, bytes32(0), 0, alice);
         vm.prank(alice);
         vm.expectRevert(Errors.CapReached.selector);
-        tokenSale.buyETH{ value: wei2 }(pd2, sig2);
+        tokenSale.buyETH{ value: wei2 }(pd2, sig2, "");
     }
 
     function _domainSeparator() internal view returns (bytes32) {
@@ -351,7 +351,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
             abi.encode(
                 keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
                 keccak256(bytes("ICOSale")),
-                keccak256(bytes("v1")),
+                keccak256(bytes("1")),
                 block.chainid,
                 address(tokenSale)
             )
@@ -392,7 +392,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         return (weiAmount * price) / 1 ether;
     }
 
-    function _prepare(uint256 weiAmount, string memory refCode, uint8 refType, address who)
+    function _prepare(uint256 weiAmount, bytes32 refCode, uint8 refType, address who)
         internal
         view
         returns (IICOSale.PurchaseDetails memory pd, bytes memory sig)
