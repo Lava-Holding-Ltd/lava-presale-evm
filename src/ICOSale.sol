@@ -196,11 +196,12 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     {
         require(!saleFinalized, Errors.SaleAlreadyFinalized());
         require(msg.value != 0 && msg.value == _ref.amount, Errors.ZeroAmount());
+        require(_ref.refCode == keccak256(bytes(_refCodeString)), Errors.InvalidReferralCode());
         require(_ref.asset == Constants.WETH || _ref.asset == address(0), Errors.NotAcceptedAsset());
 
         if (_ref.refType != uint8(RefType.NoReferral)) {
             require(
-                _ref.refCode != bytes32(0)
+                _ref.refCode != keccak256(bytes(""))
                     && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
                 Errors.InvalidReferralType()
             );
@@ -209,7 +210,7 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
         _verifyReferralSignature(_ref, _sig);
 
         Address.sendValue(payable(TREASURY_WALLET), msg.value);
-        refundable[_msgSender()][Constants.WETH] += msg.value;
+        refundable[_msgSender()][address(0)] += msg.value;
 
         _buyChecksAndEffects(_ref.asset, _ref.amount, _msgSender(), _refCodeString, _ref.refType);
     }
@@ -221,11 +222,12 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     {
         require(!saleFinalized, Errors.SaleAlreadyFinalized());
         require(_ref.amount != 0, Errors.ZeroAmount());
+        require(_ref.refCode == keccak256(bytes(_refCodeString)), Errors.InvalidReferralCode());
         require(_ref.asset != address(0) && isApprovedAsset[_ref.asset], Errors.NotAcceptedAsset());
 
         if (_ref.refType != uint8(RefType.NoReferral)) {
             require(
-                _ref.refCode != bytes32(0)
+                _ref.refCode != keccak256(bytes(""))
                     && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
                 Errors.InvalidReferralType()
             );
