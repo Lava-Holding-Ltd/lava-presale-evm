@@ -44,6 +44,8 @@ library Errors {
     error SaleAlreadyFinalized();
     /// @dev The custom error for cases when the provided referral type is invalid
     error InvalidReferralType();
+    /// @dev The custom error for cases when the provided referral code is invalid
+    error InvalidReferralCode();
     /// @dev The custom error for cases when the provided referral percentage is invalid
     error InvalidReferralPercentage();
     /// @dev The custom error for cases when the signature's deadline has expired

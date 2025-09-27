@@ -55,7 +55,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
 
     function test_whenAllValid_noReferral_success() external {
         (IICOSale.PurchaseDetails memory pd, bytes memory sig) =
-            _prepareToken(Constants.USDC, USDC_AMOUNT, bytes32(0), 0, alice);
+            _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
 
         uint256 treasBefore = IERC20(Constants.USDC).balanceOf(PLATFORM_TREASURY_WALLET);
         uint256 refBefore = tokenSale.refundable(alice, Constants.USDC);
@@ -112,7 +112,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         tokenSale.finalizeSale();
 
         (IICOSale.PurchaseDetails memory pd, bytes memory sig) =
-            _prepareToken(Constants.USDC, USDC_AMOUNT, bytes32(0), 0, alice);
+            _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.SaleAlreadyFinalized.selector);
@@ -120,7 +120,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
     }
 
     function test_whenAmountZero_revert() external {
-        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepareToken(Constants.USDC, 0, bytes32(0), 0, alice);
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepareToken(Constants.USDC, 0, keccak256(bytes("")), 0, alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.ZeroAmount.selector);
@@ -128,7 +128,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
     }
 
     function test_whenAssetZeroOrNotApproved_revert() external {
-        IICOSale.PurchaseDetails memory pd0 = _buildPD(address(0), USDC_AMOUNT, bytes32(0), 0, alice);
+        IICOSale.PurchaseDetails memory pd0 = _buildPD(address(0), USDC_AMOUNT, keccak256(bytes("")), 0, alice);
         bytes memory sig0 = _signPurchase(OWNER_PK, pd0);
         vm.prank(alice);
         vm.expectRevert(Errors.NotAcceptedAsset.selector);
@@ -140,7 +140,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         vm.prank(alice);
         fake.approve(address(tokenSale), type(uint256).max);
 
-        IICOSale.PurchaseDetails memory pd1 = _buildPD(address(fake), USDC_AMOUNT, bytes32(0), 0, alice);
+        IICOSale.PurchaseDetails memory pd1 = _buildPD(address(fake), USDC_AMOUNT, keccak256(bytes("")), 0, alice);
         bytes memory sig1 = _signPurchase(OWNER_PK, pd1);
         vm.prank(alice);
         vm.expectRevert(Errors.NotAcceptedAsset.selector);
@@ -149,7 +149,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
 
     function test_whenRefTypeProvidedButEmptyCode_revert() external {
         (IICOSale.PurchaseDetails memory pd, bytes memory sig) =
-            _prepareToken(Constants.USDC, USDC_AMOUNT, bytes32(0), uint8(1), alice);
+            _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), uint8(1), alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.InvalidReferralType.selector);
@@ -166,7 +166,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
     }
 
     function test_whenBuyerMismatch_revert() external {
-        IICOSale.PurchaseDetails memory pd = _buildPD(Constants.USDC, USDC_AMOUNT, bytes32(0), 0, alice);
+        IICOSale.PurchaseDetails memory pd = _buildPD(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
         bytes memory sig = _signPurchase(OWNER_PK, pd);
 
         vm.prank(bob);
@@ -175,7 +175,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
     }
 
     function test_whenRoundIdMismatch_revert() external {
-        (IICOSale.PurchaseDetails memory pd,) = _prepareToken(Constants.USDC, USDC_AMOUNT, bytes32(0), 0, alice);
+        (IICOSale.PurchaseDetails memory pd,) = _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
         pd.roundId = tokenSale.currentRoundId() + 1;
         bytes memory sig = _signPurchase(OWNER_PK, pd);
 
@@ -185,7 +185,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
     }
 
     function test_whenNonceMismatch_revert() external {
-        (IICOSale.PurchaseDetails memory pd,) = _prepareToken(Constants.USDC, USDC_AMOUNT, bytes32(0), 0, alice);
+        (IICOSale.PurchaseDetails memory pd,) = _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
         pd.nonce = pd.nonce + 1;
         bytes memory sig = _signPurchase(OWNER_PK, pd);
 
@@ -195,7 +195,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
     }
 
     function test_whenDeadlineExpired_revert() external {
-        (IICOSale.PurchaseDetails memory pd,) = _prepareToken(Constants.USDC, USDC_AMOUNT, bytes32(0), 0, alice);
+        (IICOSale.PurchaseDetails memory pd,) = _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
         pd.deadline = block.timestamp - 1;
         bytes memory sig = _signPurchase(OWNER_PK, pd);
 
@@ -209,7 +209,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         address badOwner = vm.addr(BAD_PK);
         assertTrue(badOwner != NEW_OWNER);
 
-        IICOSale.PurchaseDetails memory pd = _buildPD(Constants.USDC, USDC_AMOUNT, bytes32(0), 0, alice);
+        IICOSale.PurchaseDetails memory pd = _buildPD(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
 
         bytes32 ds = _domainSeparator();
         bytes32 sh = _structHash(pd);
@@ -229,7 +229,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         tokenSale.setNewRound(start2, end2, roundPrice, roundCap);
 
         IICOSale.PurchaseDetails memory pd = IICOSale.PurchaseDetails({
-            refCode: bytes32(0),
+            refCode: keccak256(bytes("")),
             refType: 0,
             buyer: alice,
             asset: Constants.USDC,
@@ -250,7 +250,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         vm.warp(end + 1);
 
         (IICOSale.PurchaseDetails memory pd, bytes memory sig) =
-            _prepareToken(Constants.USDC, USDC_AMOUNT, bytes32(0), 0, alice);
+            _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.InvalidTimeframe.selector);
@@ -262,7 +262,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         tokenSale.setMinUsdPerTx(100 ether);
 
         (IICOSale.PurchaseDetails memory pd, bytes memory sig) =
-            _prepareToken(Constants.USDC, USDC_AMOUNT, bytes32(0), 0, alice);
+            _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.UnderMin.selector);
@@ -277,14 +277,14 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         uint256 usd1 = maxPerWallet - 1 ether;
         uint256 amt1 = usd1 / USDC_TO_18;
         (IICOSale.PurchaseDetails memory pd1, bytes memory sig1) =
-            _prepareToken(Constants.USDC, amt1, bytes32(0), 0, alice);
+            _prepareToken(Constants.USDC, amt1, keccak256(bytes("")), 0, alice);
         vm.prank(alice);
         tokenSale.buyToken(pd1, sig1, "");
 
         uint256 usd2 = 2 ether;
         uint256 amt2 = usd2 / USDC_TO_18;
         (IICOSale.PurchaseDetails memory pd2, bytes memory sig2) =
-            _prepareToken(Constants.USDC, amt2, bytes32(0), 0, alice);
+            _prepareToken(Constants.USDC, amt2, keccak256(bytes("")), 0, alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.WalletCapExceeded.selector);
@@ -318,7 +318,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
             IERC20(Constants.USDC).approve(address(tokenSale), type(uint256).max);
 
             uint256 amt = usdThis / USDC_TO_18;
-            IICOSale.PurchaseDetails memory pd = _buildPD(Constants.USDC, amt, bytes32(0), 0, w);
+            IICOSale.PurchaseDetails memory pd = _buildPD(Constants.USDC, amt, keccak256(bytes("")), 0, w);
             bytes memory sig = _signPurchase(OWNER_PK, pd);
 
             vm.prank(w);
@@ -335,7 +335,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         IERC20(Constants.USDC).approve(address(tokenSale), type(uint256).max);
 
         (IICOSale.PurchaseDetails memory pdF, bytes memory sigF) =
-            _prepareToken(Constants.USDC, amtFinal, bytes32(0), 0, alice);
+            _prepareToken(Constants.USDC, amtFinal, keccak256(bytes("")), 0, alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.HardCapExceeded.selector);
@@ -356,7 +356,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         uint256 amt1 = usd1 / USDC_TO_18;
 
         (IICOSale.PurchaseDetails memory pd1, bytes memory sig1) =
-            _prepareToken(Constants.USDC, amt1, bytes32(0), 0, alice);
+            _prepareToken(Constants.USDC, amt1, keccak256(bytes("")), 0, alice);
         vm.prank(alice);
         tokenSale.buyToken(pd1, sig1, "");
 
@@ -364,7 +364,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         uint256 amt2 = usd2 / USDC_TO_18;
 
         (IICOSale.PurchaseDetails memory pd2, bytes memory sig2) =
-            _prepareToken(Constants.USDC, amt2, bytes32(0), 0, alice);
+            _prepareToken(Constants.USDC, amt2, keccak256(bytes("")), 0, alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.CapReached.selector);
@@ -394,7 +394,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         uint256 usdForTarget = (targetTokens * cheapPrice) / 1 ether;
         uint256 amt = usdForTarget / USDC_TO_18;
 
-        IICOSale.PurchaseDetails memory pd = _buildPD(Constants.USDC, amt, bytes32(0), 0, w);
+        IICOSale.PurchaseDetails memory pd = _buildPD(Constants.USDC, amt, keccak256(bytes("")), 0, w);
         bytes memory sig = _signPurchase(OWNER_PK, pd);
         vm.prank(w);
         tokenSale.buyToken(pd, sig, "");
@@ -402,7 +402,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         uint256 usd2 = 1 ether;
         uint256 amt2 = usd2 / USDC_TO_18;
         (IICOSale.PurchaseDetails memory pd2, bytes memory sig2) =
-            _prepareToken(Constants.USDC, amt2, bytes32(0), 0, alice);
+            _prepareToken(Constants.USDC, amt2, keccak256(bytes("")), 0, alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.CapReached.selector);
