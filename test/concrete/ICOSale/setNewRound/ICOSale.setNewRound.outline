@@ -27,7 +27,7 @@ when newId >= Constants.MAX_ROUNDS
     it reverts
         expect revert with Errors.CapReached
 
-when timeframe is invalid (_startTime == 0 or _endTime == 0 or _startTime >= _endTime)
+when timeframe is invalid (_startTime == 0 or _startTime < block.timestamp or _endTime == 0 or _startTime >= _endTime)
     it reverts
         expect revert with Errors.InvalidTimeframe
 

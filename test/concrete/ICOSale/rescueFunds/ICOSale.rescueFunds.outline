@@ -1,13 +1,13 @@
 OracleAdapter.rescueFunds
 
-when called by the owner with an ERC20 token (non-zero address, not Constants.WETH) and sufficient token balance
+when called by the owner with an ERC20 token and sufficient token balance
     it transfers ERC20 tokens to the TREASURY_WALLET
         expect TREASURY_WALLET token balance to increase by _amount
         expect contract token balance to decrease by _amount
     it emits FundsRescued event
         expect event with correct parameters
 
-when called by the owner with _token == address(0) (native ETH) or _token == Constants.WETH and _amount <= contract ETH balance
+when called by the owner with _token == address(0) (native ETH) and _amount <= contract ETH balance
     it transfers native ETH to the TREASURY_WALLET
         expect TREASURY_WALLET ETH balance to increase by _amount
         expect contract ETH balance to decrease by _amount
@@ -18,7 +18,7 @@ when _amount is zero
     it reverts
         expect revert with Errors.ZeroAmount
 
-when _token == address(0) or _token == Constants.WETH and _amount > contract ETH balance
+when _token == address(0) and _amount > contract ETH balance
     it reverts
         expect revert with Errors.InsufficientBalance
     it does not change state

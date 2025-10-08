@@ -96,7 +96,20 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         assertEq(tokenSale.refTotalBonusTokens(code), refBonusBefore + refBonus);
     }
 
+    function test_whenProvidedRefCode_NoReferral_revert() external {
+        uint256 weiAmount = _usdToWei(50 ether);
+
+        string memory code = "INFL-abc";
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, keccak256(bytes(code)), 0, alice);
+
+        vm.prank(alice);
+        vm.expectRevert(Errors.InvalidReferralCode.selector);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, code);
+    }
+
     function test_whenSaleFinalized_revert() external {
+        _createRounds(Constants.MAX_ROUNDS - 1);
+
         vm.prank(NEW_OWNER);
         tokenSale.finalizeSale();
 
@@ -415,6 +428,19 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         (,,, uint256 updatedAt,) = AggregatorV3Interface(feedAddress).latestRoundData();
         if (block.timestamp < updatedAt) {
             vm.warp(updatedAt);
+        }
+    }
+
+    function _createRounds(uint256 n) internal {
+        uint256 nowTs = block.timestamp;
+        for (uint256 i; i < n; i++) {
+            uint256 startTime = nowTs + (i + 1) * 1000;
+            uint256 endTime = startTime + 100;
+            uint256 tokenPrice = 1 ether;
+            uint256 capTotal = 1e24 / 10;
+
+            vm.prank(NEW_OWNER);
+            tokenSale.setNewRound(startTime, endTime, tokenPrice, capTotal);
         }
     }
 }

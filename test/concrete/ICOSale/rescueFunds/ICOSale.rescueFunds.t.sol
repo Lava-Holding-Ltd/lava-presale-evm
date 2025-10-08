@@ -66,29 +66,6 @@ contract ICOSaleRescueFundsTest is ICOSaleTest {
         tokenSale.rescueFunds(address(0), address(tokenSale).balance + 1 wei);
     }
 
-    function test_whenOwnerRescuesWithWETHAddress_success() external {
-        uint256 amount = 0.09 ether;
-
-        vm.deal(address(tokenSale), amount);
-
-        uint256 treasuryBefore = PLATFORM_TREASURY_WALLET.balance;
-        uint256 saleBefore = address(tokenSale).balance;
-
-        vm.prank(INITIAL_ADMIN);
-        vm.expectEmit(true, true, true, true);
-        emit IICOSale.FundsRescued(Constants.WETH, PLATFORM_TREASURY_WALLET, amount, INITIAL_ADMIN);
-        tokenSale.rescueFunds(Constants.WETH, amount);
-
-        assertEq(PLATFORM_TREASURY_WALLET.balance, treasuryBefore + amount);
-        assertEq(address(tokenSale).balance, saleBefore - amount);
-    }
-
-    function test_whenOwnerRescuesWithWETHAddress_insufficientBalance_revert() external {
-        vm.prank(INITIAL_ADMIN);
-        vm.expectRevert(Errors.InsufficientBalance.selector);
-        tokenSale.rescueFunds(Constants.WETH, address(tokenSale).balance + 1 wei);
-    }
-
     function test_whenAmountIsZero_revert() external {
         vm.prank(INITIAL_ADMIN);
         vm.expectRevert(Errors.ZeroAmount.selector);

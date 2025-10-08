@@ -90,6 +90,14 @@ contract ICOSaleSetNewRoundTest is ICOSaleTest {
         tokenSale.setNewRound(e, s, p, c);
     }
 
+    function test_whenStartLessBlockTimestamp_revert() external {
+        (uint256 s, uint256 e, uint256 p, uint256 c) = _params(10, 1 days, 0.1 ether, 1_000_000 ether);
+
+        vm.prank(INITIAL_ADMIN);
+        vm.expectRevert(Errors.InvalidTimeframe.selector);
+        tokenSale.setNewRound(s - 1 hours, e, p, c);
+    }
+
     function test_whenZeroPrice_revert() external {
         (uint256 s, uint256 e,, uint256 c) = _params(10, 1 days, 0, 1_000_000 ether);
 

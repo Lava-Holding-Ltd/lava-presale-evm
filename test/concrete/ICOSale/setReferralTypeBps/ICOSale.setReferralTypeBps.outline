@@ -1,11 +1,11 @@
 ICOSale.setReferralTypeBps
 
-when called by the owner with _refType = Influencer and _refPercentage ≤ BASIS_FEE_DIVISOR
+when called by the owner with _refType = Influencer and _refPercentage ≤ MAX_REFERRAL_PERCENTAGE
     it sets the percentage and emits the event
         expect referralBonusBpsByType[Influencer] == _refPercentage
         expect emit ReferralTypePercentageUpdated event with correct parameters
 
-when called by the owner with _refType = Media and _refPercentage ≤ BASIS_FEE_DIVISOR
+when called by the owner with _refType = Media and _refPercentage ≤ MAX_REFERRAL_PERCENTAGE
     it sets the percentage and emits the event
         expect referralBonusBpsByType[Media] == _refPercentage
         expect emit ReferralTypePercentageUpdated event with correct parameters
@@ -22,7 +22,7 @@ when _refType is invalid
     it reverts and does not change state
         expect revert with Errors.InvalidReferralType
 
-when _refPercentage > BASIS_FEE_DIVISOR
+when _refPercentage > MAX_REFERRAL_PERCENTAGE
     it reverts and does not change state
         expect revert with Errors.InvalidReferralPercentage
 

@@ -107,7 +107,19 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         assertEq(tokenSale.refTotalBonusTokens(code), refBonusBefore + refBonus);
     }
 
+    function test_whenProvidedRefCode_NoReferral_revert() external {
+        string memory code = "INFL-abc";
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) =
+            _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes(code)), 0, alice);
+
+        vm.prank(alice);
+        vm.expectRevert(Errors.InvalidReferralCode.selector);
+        tokenSale.buyToken(pd, sig, code);
+    }
+
     function test_whenSaleFinalized_revert() external {
+        _createRounds(Constants.MAX_ROUNDS - 1);
+
         vm.prank(NEW_OWNER);
         tokenSale.finalizeSale();
 
@@ -120,7 +132,8 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
     }
 
     function test_whenAmountZero_revert() external {
-        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepareToken(Constants.USDC, 0, keccak256(bytes("")), 0, alice);
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) =
+            _prepareToken(Constants.USDC, 0, keccak256(bytes("")), 0, alice);
 
         vm.prank(alice);
         vm.expectRevert(Errors.ZeroAmount.selector);
@@ -175,7 +188,8 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
     }
 
     function test_whenRoundIdMismatch_revert() external {
-        (IICOSale.PurchaseDetails memory pd,) = _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
+        (IICOSale.PurchaseDetails memory pd,) =
+            _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
         pd.roundId = tokenSale.currentRoundId() + 1;
         bytes memory sig = _signPurchase(OWNER_PK, pd);
 
@@ -185,7 +199,8 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
     }
 
     function test_whenNonceMismatch_revert() external {
-        (IICOSale.PurchaseDetails memory pd,) = _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
+        (IICOSale.PurchaseDetails memory pd,) =
+            _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
         pd.nonce = pd.nonce + 1;
         bytes memory sig = _signPurchase(OWNER_PK, pd);
 
@@ -195,7 +210,8 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
     }
 
     function test_whenDeadlineExpired_revert() external {
-        (IICOSale.PurchaseDetails memory pd,) = _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
+        (IICOSale.PurchaseDetails memory pd,) =
+            _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
         pd.deadline = block.timestamp - 1;
         bytes memory sig = _signPurchase(OWNER_PK, pd);
 
@@ -479,5 +495,18 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         address feedAddress = oracle.priceFeeds(Constants.WETH);
         (,,, uint256 updatedAt,) = AggregatorV3Interface(feedAddress).latestRoundData();
         if (block.timestamp < updatedAt) vm.warp(updatedAt);
+    }
+
+    function _createRounds(uint256 n) internal {
+        uint256 nowTs = block.timestamp;
+        for (uint256 i; i < n; i++) {
+            uint256 startTime = nowTs + (i + 1) * 1000;
+            uint256 endTime = startTime + 100;
+            uint256 tokenPrice = 1 ether;
+            uint256 capTotal = 1e24 / 10;
+
+            vm.prank(NEW_OWNER);
+            tokenSale.setNewRound(startTime, endTime, tokenPrice, capTotal);
+        }
     }
 }

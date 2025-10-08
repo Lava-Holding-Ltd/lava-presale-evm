@@ -7,7 +7,7 @@ ICOSale.setNewRound
 │   └── it creates the new round with correct fields and emits NewRoundSet
 ├── when newId >= Constants.MAX_ROUNDS
 │   └── it reverts with CapReached
-├── when timeframe is invalid (_startTime == 0 or _endTime == 0 or _startTime >= _endTime)
+├── when timeframe is invalid (_startTime == 0 or _startTime < block.timestamp or _endTime == 0 or _startTime >= _endTime)
 │   └── it reverts with InvalidTimeframe
 ├── when _tokenPrice == 0 or _capTotal == 0
 │   └── it reverts with ZeroAmount

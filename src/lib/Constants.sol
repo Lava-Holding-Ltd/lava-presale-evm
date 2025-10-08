@@ -7,14 +7,14 @@ library Constants {
     /// @dev The maximum number of rounds allowed in the ICO sale
     uint256 public constant MAX_ROUNDS = 10;
 
-    /// @notice The constant defining the soft cap in USD (normalized to 18 decimals)
-    uint256 public constant SOFT_CAP_USD = 75_000 * 1 ether;
     /// @notice The constant defining the hard cap in USD (normalized to 18 decimals)
     uint256 public constant HARD_CAP_USD = 5_565_000 * 1 ether;
 
     /// @notice The constant defining the maximum USD amount per wallet (normalized to 18 decimals)
     uint256 public constant MAX_USD_PER_WALLET = 50_000 * 1 ether;
 
+    /// @dev The maximum referral percentage (10%)
+    uint256 internal constant MAX_REFERRAL_PERCENTAGE = 1_000;
     /// @dev The divisor (10_000 - 100%) to calculate the percentage
     uint16 internal constant BASIS_FEE_DIVISOR = 10_000;
 

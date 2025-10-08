@@ -42,6 +42,8 @@ library Errors {
     error SaleNotFinished();
     /// @dev The custom error for cases when the sale has already been finalized
     error SaleAlreadyFinalized();
+    /// @dev The custom error for cases when there are ongoing sale rounds
+    error OngoingSaleRounds();
     /// @dev The custom error for cases when the provided referral type is invalid
     error InvalidReferralType();
     /// @dev The custom error for cases when the provided referral code is invalid

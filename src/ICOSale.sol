@@ -81,7 +81,7 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     mapping(address => mapping(address => uint256)) public refundable;
 
     /// @notice The mapping tracks referral bonus basis points by referral type
-    /// @dev The key is the referral type (e.g., 0 for influencer, 1 for media, etc.), and the value is the bonus in basis points
+    /// @dev The key is the referral type (e.g., 0 for no referral, 1 for influencer, etc.), and the value is the bonus in basis points
     mapping(uint8 => uint16) public referralBonusBpsByType;
 
     /// @notice The mapping tracks total USD raised per referral code (normalized to 18 decimals)
@@ -122,7 +122,7 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     function rescueFunds(address _token, uint256 _amount) external nonReentrant onlyOwner {
         require(_amount != 0, Errors.ZeroAmount());
 
-        if (_token != address(0) && _token != Constants.WETH) {
+        if (_token != address(0)) {
             IERC20(_token).safeTransfer(TREASURY_WALLET, _amount);
         } else {
             require(_amount <= address(this).balance, Errors.InsufficientBalance());
@@ -150,7 +150,7 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     /// @inheritdoc IICOSale
     function setReferralTypeBps(uint8 _refType, uint16 _refPercentage) external onlyOwner {
         require(_refType == uint8(RefType.Influencer) || _refType == uint8(RefType.Media), Errors.InvalidReferralType());
-        require(_refPercentage <= Constants.BASIS_FEE_DIVISOR, Errors.InvalidReferralPercentage());
+        require(_refPercentage <= Constants.MAX_REFERRAL_PERCENTAGE, Errors.InvalidReferralPercentage());
         referralBonusBpsByType[_refType] = _refPercentage;
         emit ReferralTypePercentageUpdated(_refType, _refPercentage, _msgSender());
     }
@@ -158,7 +158,9 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
     /// @inheritdoc IICOSale
     function finalizeSale() external onlyOwner {
         require(!saleFinalized, Errors.SaleAlreadyFinalized());
+        require(currentRoundId + 1 == Constants.MAX_ROUNDS, Errors.OngoingSaleRounds());
         saleFinalized = true;
+        if (rounds[currentRoundId].active) rounds[currentRoundId].active = false;
         emit SaleFinalized(totalUsdRaised, _msgSender());
     }
 
@@ -167,7 +169,11 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
         external
         onlyOwner
     {
-        require(_startTime != 0 && _endTime != 0 && _startTime < _endTime, Errors.InvalidTimeframe());
+        require(!saleFinalized, Errors.SaleAlreadyFinalized());
+        require(
+            _startTime != 0 && _startTime >= block.timestamp && _endTime != 0 && _startTime < _endTime,
+            Errors.InvalidTimeframe()
+        );
         require(_tokenPrice != 0 && _capTotal != 0, Errors.ZeroAmount());
 
         if (rounds[currentRoundId].active) rounds[currentRoundId].active = false;
@@ -205,6 +211,8 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
                     && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
                 Errors.InvalidReferralType()
             );
+        } else {
+            require(_ref.refCode == keccak256(bytes("")), Errors.InvalidReferralCode());
         }
 
         _verifyReferralSignature(_ref, _sig);
@@ -231,6 +239,8 @@ contract ICOSale is IICOSale, EIP712, Ownable, ReentrancyGuard, Nonces {
                     && (_ref.refType == uint8(RefType.Influencer) || _ref.refType == uint8(RefType.Media)),
                 Errors.InvalidReferralType()
             );
+        } else {
+            require(_ref.refCode == keccak256(bytes("")), Errors.InvalidReferralCode());
         }
 
         _verifyReferralSignature(_ref, _sig);
