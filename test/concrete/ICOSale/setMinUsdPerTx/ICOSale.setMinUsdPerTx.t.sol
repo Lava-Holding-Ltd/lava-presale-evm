@@ -3,7 +3,6 @@ pragma solidity 0.8.29;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-import { INITIAL_ADMIN } from "script/lib/DataStore.sol";
 import { Errors } from "src/lib/Errors.sol";
 import { IICOSale } from "src/interfaces/IICOSale.sol";
 
@@ -19,9 +18,9 @@ contract ICOSaleSetMinUsdPerTxTest is ICOSaleTest {
 
         assertEq(tokenSale.minUsdPerTx(), 0);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
-        emit IICOSale.MinUsdPerTxUpdated(newMin, INITIAL_ADMIN);
+        emit IICOSale.MinUsdPerTxUpdated(newMin, deployer);
         tokenSale.setMinUsdPerTx(newMin);
 
         assertEq(tokenSale.minUsdPerTx(), newMin);
@@ -33,27 +32,27 @@ contract ICOSaleSetMinUsdPerTxTest is ICOSaleTest {
 
         assertEq(tokenSale.minUsdPerTx(), 0);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.setMinUsdPerTx(oldMin);
         assertEq(tokenSale.minUsdPerTx(), oldMin);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
-        emit IICOSale.MinUsdPerTxUpdated(newMin, INITIAL_ADMIN);
+        emit IICOSale.MinUsdPerTxUpdated(newMin, deployer);
         tokenSale.setMinUsdPerTx(newMin);
 
         assertEq(tokenSale.minUsdPerTx(), newMin);
     }
 
     function test_whenZeroValue_revert() external {
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.ZeroAmount.selector);
         tokenSale.setMinUsdPerTx(0);
     }
 
     function test_whenCalledByNonOwner_revert() external {
         uint256 preset = 25 * 1 ether;
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.setMinUsdPerTx(preset);
 
         vm.prank(bob);

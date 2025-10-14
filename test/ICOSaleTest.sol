@@ -3,12 +3,7 @@ pragma solidity 0.8.29;
 
 import { Test } from "./Test.sol";
 
-import {
-    INITIAL_ADMIN,
-    PLATFORM_TREASURY_WALLET,
-    ETHEREUM_WETH_USD_CHAINLINK,
-    ETHEREUM_WETH_USD_HEARTBEAT
-} from "script/lib/DataStore.sol";
+import { ETHEREUM_WETH_USD_CHAINLINK, ETHEREUM_WETH_USD_HEARTBEAT } from "script/lib/DataStore.sol";
 
 import { ICOSale } from "src/ICOSale.sol";
 import { OracleAdapter } from "src/OracleAdapter.sol";
@@ -23,8 +18,8 @@ contract ICOSaleTest is Test {
     function fixture() internal {
         vm.createSelectFork("https://ethereum-rpc.publicnode.com");
 
-        oracle = new OracleAdapter(INITIAL_ADMIN);
-        tokenSale = new ICOSale(INITIAL_ADMIN, address(oracle), PLATFORM_TREASURY_WALLET, 330 * 1e6 * 1 ether);
+        oracle = new OracleAdapter(deployer);
+        tokenSale = new ICOSale(deployer, address(oracle), deployer, 330 * 1e6 * 1 ether);
 
         address[] memory tokens = new address[](1);
         tokens[0] = Constants.WETH;
@@ -35,7 +30,7 @@ contract ICOSaleTest is Test {
         uint256[] memory heartbeats = new uint256[](1);
         heartbeats[0] = ETHEREUM_WETH_USD_HEARTBEAT;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         oracle.setPriceFeeds(tokens, feeds, heartbeats);
 
         vm.deal(alice, 10 ether);

@@ -4,15 +4,21 @@ pragma solidity 0.8.29;
 import { Script, console } from "forge-std/Script.sol";
 
 import { ICOSale } from "src/ICOSale.sol";
-import { INITIAL_ADMIN, PLATFORM_TREASURY_WALLET } from "script/lib/DataStore.sol";
 
 contract DeployICOSaleScript is Script {
+    /// @dev The address of the OracleAdapter SC
     address internal oracle;
+    /// @dev The address of the initial admin
+    address internal initialAdmin;
+    /// @dev The address of the platform treasury wallet to receive all funds
+    address internal platformTreasury;
+    /// @dev The total allocation of tokens for the ICO sale
+    uint256 internal totalAllocation;
 
     function run() external {
         vm.startBroadcast();
 
-        address icoSale = address(new ICOSale(INITIAL_ADMIN, oracle, PLATFORM_TREASURY_WALLET, 330_000_000 * 1 ether));
+        address icoSale = address(new ICOSale(initialAdmin, oracle, platformTreasury, totalAllocation));
         console.log("The ICOSale SC deployed at:", icoSale);
 
         vm.stopBroadcast();

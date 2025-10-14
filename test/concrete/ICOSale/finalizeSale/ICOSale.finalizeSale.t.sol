@@ -3,7 +3,6 @@ pragma solidity 0.8.29;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-import { INITIAL_ADMIN } from "script/lib/DataStore.sol";
 import { Errors } from "src/lib/Errors.sol";
 import { Constants } from "src/lib/Constants.sol";
 import { IICOSale } from "src/interfaces/IICOSale.sol";
@@ -20,9 +19,9 @@ contract ICOSaleFinalizeSaleTest is ICOSaleTest {
 
         _createRounds(Constants.MAX_ROUNDS);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
-        emit IICOSale.SaleFinalized(0, INITIAL_ADMIN);
+        emit IICOSale.SaleFinalized(0, deployer);
         tokenSale.finalizeSale();
 
         assertTrue(tokenSale.saleFinalized());
@@ -31,7 +30,7 @@ contract ICOSaleFinalizeSaleTest is ICOSaleTest {
     function test_whenOwnerFinalizes_beforeAllRounds_revert() external {
         _createRounds(Constants.MAX_ROUNDS - 1);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.OngoingSaleRounds.selector);
         tokenSale.finalizeSale();
     }
@@ -39,11 +38,11 @@ contract ICOSaleFinalizeSaleTest is ICOSaleTest {
     function test_whenOwnerFinalizesTwice_revert() external {
         _createRounds(Constants.MAX_ROUNDS);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.finalizeSale();
         assertTrue(tokenSale.saleFinalized());
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.SaleAlreadyFinalized.selector);
         tokenSale.finalizeSale();
     }
@@ -62,7 +61,7 @@ contract ICOSaleFinalizeSaleTest is ICOSaleTest {
             uint256 tokenPrice = 1 ether;
             uint256 capTotal = 1e24;
 
-            vm.prank(INITIAL_ADMIN);
+            vm.prank(deployer);
             tokenSale.setNewRound(startTime, endTime, tokenPrice, capTotal);
         }
     }

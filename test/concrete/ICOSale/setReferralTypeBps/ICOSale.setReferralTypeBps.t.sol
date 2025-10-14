@@ -3,7 +3,6 @@ pragma solidity 0.8.29;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-import { INITIAL_ADMIN } from "script/lib/DataStore.sol";
 import { Errors } from "src/lib/Errors.sol";
 import { IICOSale } from "src/interfaces/IICOSale.sol";
 
@@ -24,9 +23,9 @@ contract ICOSaleSetReferralTypeBpsTest is ICOSaleTest {
 
         assertEq(tokenSale.referralBonusBpsByType(INF), 0);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
-        emit IICOSale.ReferralTypePercentageUpdated(INF, pct, INITIAL_ADMIN);
+        emit IICOSale.ReferralTypePercentageUpdated(INF, pct, deployer);
         tokenSale.setReferralTypeBps(INF, pct);
 
         assertEq(tokenSale.referralBonusBpsByType(INF), pct);
@@ -37,9 +36,9 @@ contract ICOSaleSetReferralTypeBpsTest is ICOSaleTest {
 
         assertEq(tokenSale.referralBonusBpsByType(MED), 0);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
-        emit IICOSale.ReferralTypePercentageUpdated(MED, pct, INITIAL_ADMIN);
+        emit IICOSale.ReferralTypePercentageUpdated(MED, pct, deployer);
         tokenSale.setReferralTypeBps(MED, pct);
 
         assertEq(tokenSale.referralBonusBpsByType(MED), pct);
@@ -49,20 +48,20 @@ contract ICOSaleSetReferralTypeBpsTest is ICOSaleTest {
         uint16 initialPct = 300;
         uint16 newPct = 1000;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.setReferralTypeBps(INF, initialPct);
         assertEq(tokenSale.referralBonusBpsByType(INF), initialPct);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
-        emit IICOSale.ReferralTypePercentageUpdated(INF, newPct, INITIAL_ADMIN);
+        emit IICOSale.ReferralTypePercentageUpdated(INF, newPct, deployer);
         tokenSale.setReferralTypeBps(INF, newPct);
 
         assertEq(tokenSale.referralBonusBpsByType(INF), newPct);
     }
 
     function test_whenZeroPercentage_success() external {
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.setReferralTypeBps(INF, 0);
         assertEq(tokenSale.referralBonusBpsByType(INF), 0);
     }
@@ -70,15 +69,15 @@ contract ICOSaleSetReferralTypeBpsTest is ICOSaleTest {
     function test_whenInvalidRefType_revert() external {
         uint16 initialPct = 1000;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.setReferralTypeBps(INF, initialPct);
         assertEq(tokenSale.referralBonusBpsByType(INF), initialPct);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.InvalidReferralType.selector);
         tokenSale.setReferralTypeBps(NO, 500);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.InvalidReferralType.selector);
         tokenSale.setReferralTypeBps(3, 500);
 
@@ -88,12 +87,12 @@ contract ICOSaleSetReferralTypeBpsTest is ICOSaleTest {
     function test_whenPercentageAboveDivisor_revert() external {
         uint16 initialPct = 200;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.setReferralTypeBps(MED, initialPct);
         assertEq(tokenSale.referralBonusBpsByType(MED), initialPct);
 
         uint16 invalidPct = 1001;
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.InvalidReferralPercentage.selector);
         tokenSale.setReferralTypeBps(MED, invalidPct);
 
@@ -103,7 +102,7 @@ contract ICOSaleSetReferralTypeBpsTest is ICOSaleTest {
     function test_whenCalledByNonOwner_revert() external {
         uint16 initialPct = 700;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.setReferralTypeBps(INF, initialPct);
         assertEq(tokenSale.referralBonusBpsByType(INF), initialPct);
 

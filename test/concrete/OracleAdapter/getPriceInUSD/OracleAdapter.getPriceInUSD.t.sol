@@ -5,8 +5,6 @@ import { Errors } from "src/lib/Errors.sol";
 import { Constants } from "src/lib/Constants.sol";
 import { AggregatorV3Interface } from "@chainlink-contracts-0.8.0/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-import { INITIAL_ADMIN } from "script/lib/DataStore.sol";
-
 import { ICOSaleTest } from "test/ICOSaleTest.sol";
 
 contract OracleAdapterGetPriceInUSDTest is ICOSaleTest {
@@ -78,7 +76,7 @@ contract OracleAdapterGetPriceInUSDTest is ICOSaleTest {
         vm.warp(interval);
 
         uint256 manualPrice = 123 * 1 ether;
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         oracle.setManualPrice(manualToken, manualPrice);
 
         vm.warp(oracle.manualLastUpdated(manualToken) + interval);
@@ -96,7 +94,7 @@ contract OracleAdapterGetPriceInUSDTest is ICOSaleTest {
         uint256 interval = oracle.manualUpdateInterval();
         vm.warp(interval);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         oracle.setManualPrice(manualToken, 42 * 1 ether);
 
         vm.warp(oracle.manualLastUpdated(manualToken) + interval + 1);

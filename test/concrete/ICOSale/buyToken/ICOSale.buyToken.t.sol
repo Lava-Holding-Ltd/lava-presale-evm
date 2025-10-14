@@ -4,7 +4,6 @@ pragma solidity 0.8.29;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { AggregatorV3Interface } from "@chainlink-contracts-0.8.0/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-import { INITIAL_ADMIN, PLATFORM_TREASURY_WALLET } from "script/lib/DataStore.sol";
 import { Errors } from "src/lib/Errors.sol";
 import { Constants } from "src/lib/Constants.sol";
 import { MockERC20 } from "src/mock/MockERC20.sol";
@@ -29,7 +28,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
 
         OWNER_PK = 0xA11CE;
         NEW_OWNER = vm.addr(OWNER_PK);
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.transferOwnership(NEW_OWNER);
 
         roundPrice = 0.02 ether;
@@ -57,7 +56,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         (IICOSale.PurchaseDetails memory pd, bytes memory sig) =
             _prepareToken(Constants.USDC, USDC_AMOUNT, keccak256(bytes("")), 0, alice);
 
-        uint256 treasBefore = IERC20(Constants.USDC).balanceOf(PLATFORM_TREASURY_WALLET);
+        uint256 treasBefore = IERC20(Constants.USDC).balanceOf(deployer);
         uint256 refBefore = tokenSale.refundable(alice, Constants.USDC);
         uint256 totalBefore = tokenSale.totalUsdRaised();
         (,,,, uint256 soldBefore,) = tokenSale.rounds(tokenSale.currentRoundId());
@@ -71,7 +70,7 @@ contract ICOSaleBuyTokenTest is ICOSaleTest {
         vm.prank(alice);
         tokenSale.buyToken(pd, sig, "");
 
-        assertEq(IERC20(Constants.USDC).balanceOf(PLATFORM_TREASURY_WALLET), treasBefore + USDC_AMOUNT);
+        assertEq(IERC20(Constants.USDC).balanceOf(deployer), treasBefore + USDC_AMOUNT);
         assertEq(tokenSale.refundable(alice, Constants.USDC), refBefore + USDC_AMOUNT);
         assertEq(tokenSale.totalUsdRaised(), totalBefore + normalized);
 

@@ -3,7 +3,6 @@ pragma solidity 0.8.29;
 
 import { AggregatorV3Interface } from "@chainlink-contracts-0.8.0/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-import { INITIAL_ADMIN, PLATFORM_TREASURY_WALLET } from "script/lib/DataStore.sol";
 import { Errors } from "src/lib/Errors.sol";
 import { Constants } from "src/lib/Constants.sol";
 import { IICOSale } from "src/interfaces/IICOSale.sol";
@@ -23,7 +22,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         OWNER_PK = 0xA11CE;
         NEW_OWNER = vm.addr(OWNER_PK);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.transferOwnership(NEW_OWNER);
 
         roundPrice = 0.02 ether;
@@ -45,7 +44,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
 
         (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, keccak256(bytes("")), 0, alice);
 
-        uint256 treasuryBefore = PLATFORM_TREASURY_WALLET.balance;
+        uint256 treasuryBefore = deployer.balance;
         uint256 refundableBefore = tokenSale.refundable(alice, Constants.WETH);
         uint256 totalUsdBefore = tokenSale.totalUsdRaised();
         (,,,, uint256 soldBefore,) = tokenSale.rounds(tokenSale.currentRoundId());
@@ -59,7 +58,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         vm.prank(alice);
         tokenSale.buyETH{ value: weiAmount }(pd, sig, "");
 
-        assertEq(PLATFORM_TREASURY_WALLET.balance, treasuryBefore + weiAmount);
+        assertEq(deployer.balance, treasuryBefore + weiAmount);
         assertEq(tokenSale.refundable(alice, address(0)), refundableBefore + weiAmount);
         assertEq(tokenSale.totalUsdRaised(), totalUsdBefore + usdValue);
 

@@ -3,7 +3,6 @@ pragma solidity 0.8.29;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-import { INITIAL_ADMIN } from "script/lib/DataStore.sol";
 import { Errors } from "src/lib/Errors.sol";
 import { Constants } from "src/lib/Constants.sol";
 import { IICOSale } from "src/interfaces/IICOSale.sol";
@@ -23,7 +22,7 @@ contract ICOSaleSetNewRoundTest is ICOSaleTest {
         assertEq(_s, 0);
         assertEq(tokenSale.currentRoundId(), 0);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
         emit IICOSale.NewRoundSet(0, s, e, p, c);
         tokenSale.setNewRound(s, e, p, c);
@@ -41,14 +40,14 @@ contract ICOSaleSetNewRoundTest is ICOSaleTest {
     function test_whenPriorActiveRound_newRoundDeactivatesPreviousAndIncrementsId_success() external {
         (uint256 s0, uint256 e0, uint256 p0, uint256 c0) = _params(10, 2 days, 0.3 ether, 2_000_000 ether);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.setNewRound(s0, e0, p0, c0);
         assertEq(tokenSale.currentRoundId(), 0);
         (,,,,, bool active0Before) = tokenSale.rounds(0);
         assertTrue(active0Before);
 
         (uint256 s1, uint256 e1, uint256 p1, uint256 c1) = _params(20, 3 days, 0.5 ether, 3_000_000 ether);
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
         emit IICOSale.NewRoundSet(1, s1, e1, p1, c1);
         tokenSale.setNewRound(s1, e1, p1, c1);
@@ -69,7 +68,7 @@ contract ICOSaleSetNewRoundTest is ICOSaleTest {
     function test_whenStartIsZero_revert() external {
         (, uint256 e, uint256 p, uint256 c) = _params(10, 1 days, 0.1 ether, 1_000_000 ether);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.InvalidTimeframe.selector);
         tokenSale.setNewRound(0, e, p, c);
     }
@@ -77,7 +76,7 @@ contract ICOSaleSetNewRoundTest is ICOSaleTest {
     function test_whenEndIsZero_revert() external {
         (uint256 s,, uint256 p, uint256 c) = _params(10, 1 days, 0.1 ether, 1_000_000 ether);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.InvalidTimeframe.selector);
         tokenSale.setNewRound(s, 0, p, c);
     }
@@ -85,7 +84,7 @@ contract ICOSaleSetNewRoundTest is ICOSaleTest {
     function test_whenStartNotLessThanEnd_revert() external {
         (uint256 s, uint256 e, uint256 p, uint256 c) = _params(10, 1 days, 0.1 ether, 1_000_000 ether);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.InvalidTimeframe.selector);
         tokenSale.setNewRound(e, s, p, c);
     }
@@ -93,7 +92,7 @@ contract ICOSaleSetNewRoundTest is ICOSaleTest {
     function test_whenStartLessBlockTimestamp_revert() external {
         (uint256 s, uint256 e, uint256 p, uint256 c) = _params(10, 1 days, 0.1 ether, 1_000_000 ether);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.InvalidTimeframe.selector);
         tokenSale.setNewRound(s - 1 hours, e, p, c);
     }
@@ -101,7 +100,7 @@ contract ICOSaleSetNewRoundTest is ICOSaleTest {
     function test_whenZeroPrice_revert() external {
         (uint256 s, uint256 e,, uint256 c) = _params(10, 1 days, 0, 1_000_000 ether);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.ZeroAmount.selector);
         tokenSale.setNewRound(s, e, 0, c);
     }
@@ -109,20 +108,20 @@ contract ICOSaleSetNewRoundTest is ICOSaleTest {
     function test_whenZeroCap_revert() external {
         (uint256 s, uint256 e, uint256 p,) = _params(10, 1 days, 0.1 ether, 0);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.ZeroAmount.selector);
         tokenSale.setNewRound(s, e, p, 0);
     }
 
     function test_whenExceedingMaxRounds_revert() external {
         (uint256 s, uint256 e, uint256 p, uint256 c) = _params(10, 1 days, 0.1 ether, 1_000_000 ether);
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.setNewRound(s, e, p, c);
 
         for (uint256 i = 1; i < Constants.MAX_ROUNDS; i++) {
             (uint256 si, uint256 ei, uint256 pi, uint256 ci) =
                 _params(10 + i, 1 days, 0.1 ether + i, 1_000_000 ether + i);
-            vm.prank(INITIAL_ADMIN);
+            vm.prank(deployer);
             tokenSale.setNewRound(si, ei, pi, ci);
             assertEq(tokenSale.currentRoundId(), i);
         }
@@ -130,7 +129,7 @@ contract ICOSaleSetNewRoundTest is ICOSaleTest {
 
         (uint256 sn, uint256 en, uint256 pn, uint256 cn) =
             _params(10 + Constants.MAX_ROUNDS, 1 days, 0.5 ether, 2_000_000 ether);
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.CapReached.selector);
         tokenSale.setNewRound(sn, en, pn, cn);
     }

@@ -3,7 +3,6 @@ pragma solidity 0.8.29;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-import { INITIAL_ADMIN } from "script/lib/DataStore.sol";
 import { Errors } from "src/lib/Errors.sol";
 import { Constants } from "src/lib/Constants.sol";
 import { IICOSale } from "src/interfaces/IICOSale.sol";
@@ -20,9 +19,9 @@ contract ICOSaleSetApprovedAssetTest is ICOSaleTest {
     function test_whenOwnerFlipsFromFalseToTrue_success() external {
         assertFalse(tokenSale.isApprovedAsset(newToken));
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
-        emit IICOSale.PayAssetApprovalSet(newToken, true, INITIAL_ADMIN);
+        emit IICOSale.PayAssetApprovalSet(newToken, true, deployer);
         tokenSale.setApprovedAsset(newToken, true);
 
         assertTrue(tokenSale.isApprovedAsset(newToken));
@@ -31,9 +30,9 @@ contract ICOSaleSetApprovedAssetTest is ICOSaleTest {
     function test_whenOwnerFlipsFromTrueToFalse_success() external {
         assertTrue(tokenSale.isApprovedAsset(Constants.USDC));
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
-        emit IICOSale.PayAssetApprovalSet(Constants.USDC, false, INITIAL_ADMIN);
+        emit IICOSale.PayAssetApprovalSet(Constants.USDC, false, deployer);
         tokenSale.setApprovedAsset(Constants.USDC, false);
 
         assertFalse(tokenSale.isApprovedAsset(Constants.USDC));
@@ -42,7 +41,7 @@ contract ICOSaleSetApprovedAssetTest is ICOSaleTest {
     function test_whenZeroAsset_revert() external {
         bool beforeUSDT = tokenSale.isApprovedAsset(Constants.USDT);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.ZeroAddress.selector);
         tokenSale.setApprovedAsset(address(0), true);
 
@@ -52,7 +51,7 @@ contract ICOSaleSetApprovedAssetTest is ICOSaleTest {
     function test_whenIndicatorAlreadyTrue_revert() external {
         assertTrue(tokenSale.isApprovedAsset(Constants.WETH));
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.IndicatorAlreadySet.selector);
         tokenSale.setApprovedAsset(Constants.WETH, true);
     }
@@ -60,7 +59,7 @@ contract ICOSaleSetApprovedAssetTest is ICOSaleTest {
     function test_whenIndicatorAlreadyFalse_revert() external {
         assertFalse(tokenSale.isApprovedAsset(newToken));
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.IndicatorAlreadySet.selector);
         tokenSale.setApprovedAsset(newToken, false);
     }
