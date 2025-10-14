@@ -3,7 +3,6 @@ pragma solidity 0.8.29;
 
 import { AggregatorV3Interface } from "@chainlink-contracts-0.8.0/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-import { INITIAL_ADMIN, PLATFORM_TREASURY_WALLET } from "script/lib/DataStore.sol";
 import { Errors } from "src/lib/Errors.sol";
 import { Constants } from "src/lib/Constants.sol";
 import { IICOSale } from "src/interfaces/IICOSale.sol";
@@ -23,7 +22,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         OWNER_PK = 0xA11CE;
         NEW_OWNER = vm.addr(OWNER_PK);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         tokenSale.transferOwnership(NEW_OWNER);
 
         roundPrice = 0.02 ether;
@@ -45,7 +44,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
 
         (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, keccak256(bytes("")), 0, alice);
 
-        uint256 treasuryBefore = PLATFORM_TREASURY_WALLET.balance;
+        uint256 treasuryBefore = deployer.balance;
         uint256 refundableBefore = tokenSale.refundable(alice, Constants.WETH);
         uint256 totalUsdBefore = tokenSale.totalUsdRaised();
         (,,,, uint256 soldBefore,) = tokenSale.rounds(tokenSale.currentRoundId());
@@ -59,7 +58,7 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         vm.prank(alice);
         tokenSale.buyETH{ value: weiAmount }(pd, sig, "");
 
-        assertEq(PLATFORM_TREASURY_WALLET.balance, treasuryBefore + weiAmount);
+        assertEq(deployer.balance, treasuryBefore + weiAmount);
         assertEq(tokenSale.refundable(alice, address(0)), refundableBefore + weiAmount);
         assertEq(tokenSale.totalUsdRaised(), totalUsdBefore + usdValue);
 
@@ -96,7 +95,20 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         assertEq(tokenSale.refTotalBonusTokens(code), refBonusBefore + refBonus);
     }
 
+    function test_whenProvidedRefCode_NoReferral_revert() external {
+        uint256 weiAmount = _usdToWei(50 ether);
+
+        string memory code = "INFL-abc";
+        (IICOSale.PurchaseDetails memory pd, bytes memory sig) = _prepare(weiAmount, keccak256(bytes(code)), 0, alice);
+
+        vm.prank(alice);
+        vm.expectRevert(Errors.InvalidReferralCode.selector);
+        tokenSale.buyETH{ value: weiAmount }(pd, sig, code);
+    }
+
     function test_whenSaleFinalized_revert() external {
+        _createRounds(Constants.MAX_ROUNDS - 1);
+
         vm.prank(NEW_OWNER);
         tokenSale.finalizeSale();
 
@@ -415,6 +427,19 @@ contract ICOSaleBuyETHTest is ICOSaleTest {
         (,,, uint256 updatedAt,) = AggregatorV3Interface(feedAddress).latestRoundData();
         if (block.timestamp < updatedAt) {
             vm.warp(updatedAt);
+        }
+    }
+
+    function _createRounds(uint256 n) internal {
+        uint256 nowTs = block.timestamp;
+        for (uint256 i; i < n; i++) {
+            uint256 startTime = nowTs + (i + 1) * 1000;
+            uint256 endTime = startTime + 100;
+            uint256 tokenPrice = 1 ether;
+            uint256 capTotal = 1e24 / 10;
+
+            vm.prank(NEW_OWNER);
+            tokenSale.setNewRound(startTime, endTime, tokenPrice, capTotal);
         }
     }
 }

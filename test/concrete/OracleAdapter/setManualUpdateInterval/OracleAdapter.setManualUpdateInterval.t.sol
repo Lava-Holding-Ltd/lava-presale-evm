@@ -3,7 +3,6 @@ pragma solidity 0.8.29;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-import { INITIAL_ADMIN } from "script/lib/DataStore.sol";
 import { Errors } from "src/lib/Errors.sol";
 import { IOracleAdapter } from "src/interfaces/IOracleAdapter.sol";
 
@@ -19,9 +18,9 @@ contract OracleAdapterSetManualUpdateIntervalTest is ICOSaleTest {
 
         assertEq(oracle.manualUpdateInterval(), 4200);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
-        emit IOracleAdapter.ManualUpdateIntervalSet(newInterval, INITIAL_ADMIN);
+        emit IOracleAdapter.ManualUpdateIntervalSet(newInterval, deployer);
 
         oracle.setManualUpdateInterval(newInterval);
 
@@ -39,7 +38,7 @@ contract OracleAdapterSetManualUpdateIntervalTest is ICOSaleTest {
     }
 
     function test_whenIntervalIsZero_revert() external {
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.ZeroAmount.selector);
         oracle.setManualUpdateInterval(0);
     }

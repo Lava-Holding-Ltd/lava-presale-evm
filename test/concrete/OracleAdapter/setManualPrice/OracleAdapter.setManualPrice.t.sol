@@ -3,7 +3,6 @@ pragma solidity 0.8.29;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-import { INITIAL_ADMIN } from "script/lib/DataStore.sol";
 import { Errors } from "src/lib/Errors.sol";
 import { IOracleAdapter } from "src/interfaces/IOracleAdapter.sol";
 
@@ -23,7 +22,7 @@ contract OracleAdapterSetManualPriceTest is ICOSaleTest {
         uint256 price = 3500 * 1 ether;
         uint256 ts = block.timestamp;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
         emit IOracleAdapter.ManualPriceUpdated(token, price, ts);
         oracle.setManualPrice(token, price);
@@ -38,7 +37,7 @@ contract OracleAdapterSetManualPriceTest is ICOSaleTest {
         vm.warp(interval);
 
         uint256 oldPrice = 2 ether;
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         oracle.setManualPrice(token, oldPrice);
 
         uint256 firstUpdated = oracle.manualLastUpdated(token);
@@ -48,7 +47,7 @@ contract OracleAdapterSetManualPriceTest is ICOSaleTest {
         vm.warp(firstUpdated + interval);
         uint256 newPrice = 3 ether;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
         emit IOracleAdapter.ManualPriceUpdated(token, newPrice, block.timestamp);
         oracle.setManualPrice(token, newPrice);
@@ -64,14 +63,14 @@ contract OracleAdapterSetManualPriceTest is ICOSaleTest {
         vm.warp(interval);
 
         uint256 initialPrice = 10 ether;
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         oracle.setManualPrice(token, initialPrice);
 
         uint256 prevUpdated = oracle.manualLastUpdated(token);
 
         vm.warp(prevUpdated + interval - 1);
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.EarlyManualUpdate.selector);
         oracle.setManualPrice(token, 11 ether);
 
@@ -80,13 +79,13 @@ contract OracleAdapterSetManualPriceTest is ICOSaleTest {
     }
 
     function test_whenTokenIsZeroAddress_revert() external {
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.ZeroAddress.selector);
         oracle.setManualPrice(address(0), 1 ether);
     }
 
     function test_whenPriceIsZero_revert() external {
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.ZeroAmount.selector);
         oracle.setManualPrice(token, 0);
     }

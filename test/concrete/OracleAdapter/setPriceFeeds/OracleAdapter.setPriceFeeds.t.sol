@@ -3,7 +3,6 @@ pragma solidity 0.8.29;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-import { INITIAL_ADMIN } from "script/lib/DataStore.sol";
 import { Errors } from "src/lib/Errors.sol";
 import { IOracleAdapter } from "src/interfaces/IOracleAdapter.sol";
 
@@ -33,7 +32,7 @@ contract OracleAdapterSetPriceFeedsTest is ICOSaleTest {
         heartbeats[0] = 1 hours;
         heartbeats[1] = 2 hours;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
         emit IOracleAdapter.PriceFeedSet(tokens, feeds, heartbeats);
         oracle.setPriceFeeds(tokens, feeds, heartbeats);
@@ -53,7 +52,7 @@ contract OracleAdapterSetPriceFeedsTest is ICOSaleTest {
         feeds[0] = feedA;
         heartbeats[0] = 30 minutes;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         oracle.setPriceFeeds(tokens, feeds, heartbeats);
 
         assertEq(oracle.priceFeeds(tokenA), feedA);
@@ -67,7 +66,7 @@ contract OracleAdapterSetPriceFeedsTest is ICOSaleTest {
         feeds2[0] = feedB;
         heartbeats2[0] = 45 minutes;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectEmit(true, true, true, true);
         emit IOracleAdapter.PriceFeedSet(tokens2, feeds2, heartbeats2);
         oracle.setPriceFeeds(tokens2, feeds2, heartbeats2);
@@ -89,7 +88,7 @@ contract OracleAdapterSetPriceFeedsTest is ICOSaleTest {
         heartbeats[0] = 1 hours;
         heartbeats[1] = 2 hours;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.LengthMismatch.selector);
         oracle.setPriceFeeds(tokens, feeds, heartbeats);
     }
@@ -106,7 +105,7 @@ contract OracleAdapterSetPriceFeedsTest is ICOSaleTest {
         feeds[0] = feedA;
         heartbeats[0] = 1 hours;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.ZeroAddress.selector);
         oracle.setPriceFeeds(tokens, feeds, heartbeats);
 
@@ -126,7 +125,7 @@ contract OracleAdapterSetPriceFeedsTest is ICOSaleTest {
         feeds[0] = address(0);
         heartbeats[0] = 1 hours;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.ZeroAddress.selector);
         oracle.setPriceFeeds(tokens, feeds, heartbeats);
 
@@ -146,7 +145,7 @@ contract OracleAdapterSetPriceFeedsTest is ICOSaleTest {
         feeds[0] = feedA;
         heartbeats[0] = 0;
 
-        vm.prank(INITIAL_ADMIN);
+        vm.prank(deployer);
         vm.expectRevert(Errors.ZeroAmount.selector);
         oracle.setPriceFeeds(tokens, feeds, heartbeats);
 

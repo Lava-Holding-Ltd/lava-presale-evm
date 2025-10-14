@@ -1,7 +1,7 @@
 ICOSale.setReferralTypeBps
-├── when called by the owner with _refType = Influencer and _refPercentage ≤ BASIS_FEE_DIVISOR
+├── when called by the owner with _refType = Influencer and _refPercentage ≤ MAX_REFERRAL_PERCENTAGE
 │   └── it sets referralBonusBpsByType[Influencer] and emits ReferralTypePercentageUpdated with correct parameters
-├── when called by the owner with _refType = Media and _refPercentage ≤ BASIS_FEE_DIVISOR
+├── when called by the owner with _refType = Media and _refPercentage ≤ MAX_REFERRAL_PERCENTAGE
 │   └── it sets referralBonusBpsByType[Media] and emits ReferralTypePercentageUpdated with correct parameters
 ├── when overwriting an existing percentage
 │   └── it updates the stored value and emits the event
@@ -9,7 +9,7 @@ ICOSale.setReferralTypeBps
 │   └── it succeeds and stores 0
 ├── when _refType is invalid
 │   └── it reverts with InvalidReferralType and does not change state
-├── when _refPercentage > BASIS_FEE_DIVISOR
+├── when _refPercentage > MAX_REFERRAL_PERCENTAGE
 │   └── it reverts with InvalidReferralPercentage and does not change state
 └── when called by a non-owner
     └── it reverts with OwnableUnauthorizedAccount and does not change state
