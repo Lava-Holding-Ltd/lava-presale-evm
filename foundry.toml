@@ -21,6 +21,7 @@ bracket_spacing = true
 [dependencies]
 forge-std = "1.10.0"
 "@openzeppelin-contracts" = "5.4.0"
+"@chainlink-contracts" = "0.8.0"
 
 [rpc_endpoints]
 ethereumSepolia = "${ETH_SEPOLIA_RPC_URL}"
