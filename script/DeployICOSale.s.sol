@@ -16,6 +16,21 @@ contract DeployICOSaleScript is Script {
     uint256 internal totalAllocation;
 
     function run() external {
+        // REQUIRED env vars
+        //   INITIAL_ADMIN (address)
+        //   ORACLE (address)
+        //   PLATFORM_TREASURY (address)
+        //   TOTAL_ALLOCATION (uint256)
+        initialAdmin = vm.envAddress("INITIAL_ADMIN");
+        oracle = vm.envAddress("ORACLE");
+        platformTreasury = vm.envAddress("PLATFORM_TREASURY");
+        totalAllocation = vm.envUint("TOTAL_ALLOCATION");
+
+        require(initialAdmin != address(0), "INITIAL_ADMIN is zero");
+        require(oracle != address(0), "ORACLE is zero");
+        require(platformTreasury != address(0), "PLATFORM_TREASURY is zero");
+        require(totalAllocation > 0, "TOTAL_ALLOCATION is zero");
+
         vm.startBroadcast();
 
         address icoSale = address(new ICOSale(initialAdmin, oracle, platformTreasury, totalAllocation));

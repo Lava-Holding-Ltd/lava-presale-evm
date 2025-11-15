@@ -12,6 +12,12 @@ contract DeployOracleAdapterScript is Script {
     address internal initialAdmin;
 
     function run() external {
+        // REQUIRED env vars
+        //   INITIAL_ADMIN (address)
+        initialAdmin = vm.envAddress("INITIAL_ADMIN");
+
+        require(initialAdmin != address(0), "INITIAL_ADMIN is zero");
+
         address[] memory tokens = new address[](1);
         tokens[0] = Constants.WETH;
 
